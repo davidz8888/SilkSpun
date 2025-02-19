@@ -3867,7 +3867,7 @@ void main() {\r
     fragColor0 = albedo;  
     fragColor1 = vec4(normal * 2.0 - 1.0, 1.0);  
     fragColor2 = vec4(toSigmoid(v_positionWorld.z), height, 0.0, 1.0);  
-}`;const np=new uc;async function qa(i){const e="./objects/",t=await Hr(`${e}${i}_albedo.png`),n=await Hr(`${e}${i}_normal.png`),r=await Hr(`${e}${i}_height.png`),s=new Un(t.image.width,t.image.height),a=new Gt({uniforms:{albedoMap:{value:t},normalMap:{value:n},heightMap:{value:r}},glslVersion:ir,vertexShader:bo,fragmentShader:tp});return new Pt(s,a)}function Hr(i){return new Promise((e,t)=>{np.load(i,n=>{n.minFilter=ht,n.magFilter=ht,console.log(`✅ Loaded texture successfully: ${i}`),console.log("   ➤ Type:",n.type),console.log("   ➤ Format:",n.format),e(n)},void 0,n=>{console.error(`❌ Failed to load texture: ${i}`,n),t(n)})})}var ip=`in vec3 v_positionWorld;\r
+}`;const np=new uc;async function qa(i){const e="../objects/",t=await Hr(`${e}${i}_albedo.png`),n=await Hr(`${e}${i}_normal.png`),r=await Hr(`${e}${i}_height.png`),s=new Un(t.image.width,t.image.height),a=new Gt({uniforms:{albedoMap:{value:t},normalMap:{value:n},heightMap:{value:r}},glslVersion:ir,vertexShader:bo,fragmentShader:tp});return new Pt(s,a)}function Hr(i){return new Promise((e,t)=>{np.load(i,n=>{n.minFilter=ht,n.magFilter=ht,console.log(`✅ Loaded texture successfully: ${i}`),console.log("   ➤ Type:",n.type),console.log("   ➤ Format:",n.format),e(n)},void 0,n=>{console.error(`❌ Failed to load texture: ${i}`,n),t(n)})})}var ip=`in vec3 v_positionWorld;\r
 in vec3 v_normalWorld;\r
 in vec2 v_uv;
 
