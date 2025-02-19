@@ -1,13 +1,29 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/SilkSpun/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SilkSpun Demo</title>
-    <script type="module" crossorigin src="/SilkSpun/assets/index-56vc3BuU.js"></script>
-  </head>
-  <body>
-    <div id="app"></div>
-  </body>
+    <style>
+        /* Remove margins, padding, and scrollbars */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: black; /* Optional: background to prevent white flash */
+        }
+
+        /* Ensure Three.js canvas takes full screen without scaling issues */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+  <script type="module" crossorigin src="/SilkSpun/assets/index-56vc3BuU.js"></script>
+</head>
+<body>
+</body>
 </html>
