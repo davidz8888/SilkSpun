@@ -5,9 +5,7 @@ import { createObjectFromFile } from './objectLoader';
 // import { defaultLight } from './light';
 
 import vertexShader from './shaders/vertex.glsl';
-//import fragmentShader from './shaders/fragment.glsl';
 import lightingShader from './shaders/lighting.glsl';
-//import fragmentDebugShader from './shaders/fragmentDebug.glsl';
 
 const stats: Stats = new Stats();
 document.body.appendChild(stats.dom); // Add FPS counter to the webpage
