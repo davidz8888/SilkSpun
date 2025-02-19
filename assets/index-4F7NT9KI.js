@@ -3858,8 +3858,11 @@ float toSigmoid(float x) {\r
 void main() {\r
     vec4 albedo = texture(albedoMap, v_uv);\r
     vec3 normal = texture(normalMap, v_uv).rgb;\r
-    float height = texture(heightMap, v_uv).r;\r
+    float height = texture(heightMap, v_uv).r;
 
+    if (albedo.a <= 0.0) {\r
+        discard;\r
+    }\r
     
     fragColor0 = albedo;  
     fragColor1 = vec4(normal * 2.0 - 1.0, 1.0);  
