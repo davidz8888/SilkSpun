@@ -39,7 +39,7 @@ import vertexShader from './shaders/vertex.glsl';
 import fragmentShader from './shaders/fragment.glsl';
 
 export async function createObjectFromFile(name: string): Promise<THREE.Mesh> {
-    const pathPrefix: string = './assets/';
+    const pathPrefix: string = '../objects/';
     const albedoMap: THREE.Texture = await loadTexture(`${pathPrefix}${name}_albedo.png`);
     const normalMap: THREE.Texture = await loadTexture(`${pathPrefix}${name}_normal.png`);
     const heightMap: THREE.Texture = await loadTexture(`${pathPrefix}${name}_height.png`);

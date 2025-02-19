@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import Stats from 'stats-js';
 import { GBuffer } from './gBuffer';
-import { createObjectFromFile } from './assetLoader';
+import { createObjectFromFile } from './objectLoader';
 // import { defaultLight } from './light';
 
 import vertexShader from './shaders/vertex.glsl';

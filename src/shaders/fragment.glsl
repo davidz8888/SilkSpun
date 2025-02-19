@@ -23,7 +23,9 @@ void main() {
     vec3 normal = texture(normalMap, v_uv).rgb;
     float height = texture(heightMap, v_uv).r;
 
-
+    if (albedo.a <= 0.0) {
+        discard;
+    }
     // Output the results to different render targets
     fragColor0 = albedo;  // Albedo to the first render target
     fragColor1 = vec4(normal * 2.0 - 1.0, 1.0);  // Normal to the second render target (encoded)
