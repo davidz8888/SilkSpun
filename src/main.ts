@@ -10,7 +10,7 @@ import lightingShader from './shaders/lighting.glsl';
 const stats: Stats = new Stats();
 document.body.appendChild(stats.dom); // Add FPS counter to the webpage
 
-const sceneScale: number = 100;
+const sceneScale: number = 176;
 const sceneWidth: number = (sceneScale * window.innerWidth) / window.innerHeight;
 const sceneHeight: number = sceneScale;
 
