@@ -3,7 +3,6 @@
 
 // G-buffer inputs
 in vec3 v_positionWorld;
-in vec3 v_normalWorld;
 in vec2 v_uv;
 
 uniform float screenWidth;

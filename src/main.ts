@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import Stats from 'stats-js';
 import { GBuffer } from './gBuffer';
-import { createObjectFromFile } from './assetLoader';
+import { createObjectFromFile, createBackgroundFromFile } from './assetLoader';
 import { PointLight, SkyLight, InfiniteLight } from './light';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import geometryFragmentShader from './shaders/geometryFragment.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
+import compositeFragmentShader from './shaders/compositeFragment.glsl';
 
 const stats: Stats = new Stats();
 document.body.appendChild(stats.dom); // Add FPS counter to the webpage
@@ -18,6 +19,18 @@ const sceneHeight: number = sceneScale;
 const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
 renderer.setSize(sceneWidth, sceneHeight);
 document.body.appendChild(renderer.domElement);
+
+
+const backgroundScene: THREE.Scene = new THREE.Scene();
+const backgroundObject: THREE.Object3D = await createBackgroundFromFile('background');
+backgroundObject.position.set(0, 0, -50);
+backgroundScene.add(backgroundObject);
+
+const mountainsObject: THREE.Object3D = await createBackgroundFromFile('mountains');
+backgroundObject.position.set(0, 0, -50);
+backgroundScene.add(mountainsObject);
+
+const backgroundTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight); 
 
 const gBuffer: THREE.WebGLRenderTarget = GBuffer(sceneWidth, sceneHeight);
 
@@ -31,20 +44,9 @@ const camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(
     1000
 );
 
-async function setupScene(): Promise<void> {
-    // const testObject: THREE.Object3D = await createObjectFromFile('beams');
-    // testObject.position.set(0, 0, -1);
-    // geometryScene.add(testObject);
-
-    const backgroundObject: THREE.Object3D = await createObjectFromFile('background');
-    backgroundObject.position.set(0, 0, -50);
-    geometryScene.add(backgroundObject);
-
-    const mountainObject: THREE.Object3D = await createObjectFromFile('mountains');
-    mountainObject.position.set(0, 0, -25);
-    geometryScene.add(mountainObject);
-}
-
+const beamsObject: THREE.Object3D = await createObjectFromFile('beams');
+beamsObject.position.set(0, 0, -3);
+geometryScene.add(beamsObject);
 
 const pointLights: PointLight[] = [];
 pointLights.push({
@@ -81,9 +83,9 @@ const lightingScene: THREE.Scene = new THREE.Scene();
 const lightingUniforms = {
     screenWidth: { value: sceneWidth },
     screenHeight: { value: sceneHeight },
-    albedoMap: { value: gBuffer.textures[0] }, // Albedo texture
-    normalMap: { value: gBuffer.textures[1] }, // Normal texture
-    heightMap: { value: gBuffer.textures[2] }, // Depth texture
+    albedoMap: { value: gBuffer.textures[0] },
+    normalMap: { value: gBuffer.textures[1] },
+    heightMap: { value: gBuffer.textures[2] }, 
     pointLights: { value: pointLights },
     numPointLightsInUse: { value: pointLights.length },
     skyLight: { value: skyLight }
@@ -102,19 +104,41 @@ lightingQuad.position.set(0, 0, -1.0);
 
 const lightingTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
 
-const screenScene: THREE.Scene = new THREE.Scene();
-const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
-    map: Object.assign(lightingTarget.texture, {
-      minFilter: THREE.NearestFilter,
-      magFilter: THREE.NearestFilter,
-    }),
-  });
-const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
-screenScene.add(screenQuad);
+
+const compositeScene: THREE.Scene = new THREE.Scene();
+const compositeUniforms = {
+    screenWidth: { value: sceneWidth },
+    screenHeight: { value: sceneHeight },
+    background: { value: backgroundTarget.texture },
+    foreground: { value: lightingTarget.texture },
+
+};
+const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+    uniforms: compositeUniforms,
+    glslVersion: THREE.GLSL3,
+    vertexShader: defaultVertexShader,
+    fragmentShader: compositeFragmentShader,
+})
+
+const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), compositeMaterial);
+compositeScene.add(compositeQuad);
+
+// const screenScene: THREE.Scene = new THREE.Scene();
+// const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+//     map: Object.assign(compositeTarget.texture, {
+//       minFilter: THREE.NearestFilter,
+//       magFilter: THREE.NearestFilter,
+//     }),
+//   });
+// const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
+// screenScene.add(screenQuad);
 
 function render(): void {
     stats.begin(); 
     requestAnimationFrame(render);
+
+    renderer.setRenderTarget(backgroundTarget);
+    renderer.render(backgroundScene, camera);
 
     renderer.setRenderTarget(gBuffer);
     renderer.render(geometryScene, camera);
@@ -124,9 +148,9 @@ function render(): void {
 
     renderer.setRenderTarget(null);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(screenScene, camera);
+    renderer.render(compositeScene, camera);
 
     stats.end();
 }
 
-setupScene().then(render);
+render();

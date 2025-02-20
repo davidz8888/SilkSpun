@@ -30,7 +30,7 @@ export async function createObjectFromFile(name: string): Promise<THREE.Mesh> {
 }
 
 export async function createBackgroundFromFile(name: string): Promise<THREE.Mesh> {
-    const pathPrefix: string = './objects/';
+    const pathPrefix: string = './backgrounds/';
     const albedoMap: THREE.Texture = await loadTexture(`${pathPrefix}${name}_albedo.png`);
     const normalMap: THREE.Texture = await loadTexture(`${pathPrefix}${name}_normal.png`);
 
