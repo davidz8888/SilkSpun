@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import Stats from 'stats-js';
 import { GBuffer } from './gBuffer';
-import { createObjectFromFile } from './objectLoader';
-// import { defaultLight } from './light';
+import { createObjectFromFile } from './assetLoader';
+import { PointLight, SkyLight, InfiniteLight } from './light';
 
-import vertexShader from './shaders/vertex.glsl';
-import fragmentShader from './shaders/fragment.glsl';
-import lightingShader from './shaders/lighting.glsl';
+import defaultVertexShader from './shaders/defaultVertex.glsl';
+import geometryFragmentShader from './shaders/geometryFragment.glsl';
+import lightingFragmentShader from './shaders/lightingFragment.glsl';
 
 const stats: Stats = new Stats();
 document.body.appendChild(stats.dom); // Add FPS counter to the webpage
@@ -46,7 +46,7 @@ async function setupScene(): Promise<void> {
 }
 
 
-const pointLights = [];
+const pointLights: PointLight[] = [];
 pointLights.push({
     positionWorld: new THREE.Vector3(50.0, 50.0, 15.0),
     color: new THREE.Vector3(1.0, 1.0, 1.0),
@@ -57,20 +57,25 @@ pointLights.push({
     positionWorld: new THREE.Vector3(-50.0, -50.0, 15.0),
     color: new THREE.Vector3(0.0, 1.0, 1.0),
     falloff: 0.2,
-    radius: 300.0
+    radius: 0.0
 });
 pointLights.push({
     positionWorld: new THREE.Vector3(-50.0, 50.0, 15.0),
     color: new THREE.Vector3(1.0, 1.0, 0.0),
     falloff: 0.2,
-    radius: 300.0
+    radius: 0.0
 });
 pointLights.push({
     positionWorld: new THREE.Vector3(50.0, -50.0, 15.0),
     color: new THREE.Vector3(0.0, 0.0, 1.0),
     falloff: 0.2,
-    radius: 300.0
+    radius: 0.0
 });
+
+const skyLight: SkyLight = {
+    color: new THREE.Vector3(0.5, 0.8, 1.0),
+    shadowDistance: 20.0
+};
 
 const lightingScene: THREE.Scene = new THREE.Scene();
 const lightingUniforms = {
@@ -80,13 +85,15 @@ const lightingUniforms = {
     normalMap: { value: gBuffer.textures[1] }, // Normal texture
     heightMap: { value: gBuffer.textures[2] }, // Depth texture
     pointLights: { value: pointLights },
-    numPointLightsInUse: { value: pointLights.length }
+    numPointLightsInUse: { value: pointLights.length },
+    skyLight: { value: skyLight }
+
 };
 const lightingMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
     uniforms: lightingUniforms,
     glslVersion: THREE.GLSL3,
-    vertexShader: vertexShader,
-    fragmentShader: lightingShader,
+    vertexShader: defaultVertexShader,
+    fragmentShader: lightingFragmentShader,
 });
 
 const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), lightingMaterial);

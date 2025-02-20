@@ -24,11 +24,13 @@ struct PointLight {
 
 struct SkyLight {
     vec3 color;
+    float shadowDistance;
 };
 
 struct InfiniteLight {
     vec3 direction;
     vec3 color;
+    float shadowDistance;
 };
 
 const float HEIGHT_SCALING = 2.0;
@@ -111,8 +113,6 @@ vec3 pointLighting() {
         }
 
         if (rayFactor == 0.0) continue;
-
-        // totalLight += (normalFactor * rayFactor * lightWithDistance(light, length(displacement)));
         
         totalLight += (normalFactor * rayFactor * lightWithDistance(light, length(displacement)));
 
@@ -121,8 +121,46 @@ vec3 pointLighting() {
     return totalLight;
 }
 
+
 vec3 skyLighting() {
-    return texture(heightMap, v_uv).g * ambientLight;
+
+    vec3 totalLight = vec3(0);
+
+    for (int i = 0; i < NUM_SKYLIGHTS; i++) {
+
+        vec3 fragPosition = vec3(v_positionWorld.xy, getZ(v_uv));
+
+        vec3 lightDirection = skyLightDirections[i];
+
+        vec3 rayStep = lightDirection;
+        float stepSize = 1.0;
+        
+        vec3 normal = texture(normalMap, v_uv).rgb;
+        float normalFactor = max((dot(normal, rayStep)), 0.0);
+        if (normalFactor == 0.0) continue;
+
+        vec3 rayPosition = fragPosition;
+        float rayFactor = 1.0;
+
+        float rayTraversalDistance = skyLight.shadowDistance;
+        float rayStepDistance = stepSize * length(rayStep.xy);
+
+        for (float j = 0.0; j < rayTraversalDistance; j += rayStepDistance) {
+            
+            rayPosition += (stepSize * rayStep);
+            
+            float rayTop = rayPosition.z + 1.0;
+            float currZ = getZ(toUV(rayPosition));
+            rayFactor = min(max(rayTop - currZ, 0.0), rayFactor); 
+            if (rayFactor == 0.0) break;
+
+        }
+
+        totalLight += (normalFactor * rayFactor * skyLight.color);
+    }
+
+    // return skyLight.color;
+    return totalLight / float(NUM_SKYLIGHTS);
 }
 
 vec3 infiniteLighting() {
@@ -137,7 +175,7 @@ vec3 ambientLighting() {
 void main() {
 
     // vec3 absorbedLight = pointLighting() + ambientLighting();
-    vec3 absorbedLight = pointLighting() + ambientLighting();
+    vec3 absorbedLight = skyLighting() + pointLighting();
 
     fragColor = vec4(texture(albedoMap, v_uv).rgb * absorbedLight, 1.0);
 

@@ -9,9 +9,11 @@ export interface PointLight {
 
 export interface SkyLight {
     color: THREE.Vector3;
+    shadowDistance: number;
 }
 
 export interface InfiniteLight {
     direction: THREE.Vector3;
     color: THREE.Vector3;
+    shadowDistance: number;
 }
