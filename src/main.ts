@@ -5,6 +5,7 @@ import { createObjectFromFile } from './objectLoader';
 // import { defaultLight } from './light';
 
 import vertexShader from './shaders/vertex.glsl';
+import fragmentShader from './shaders/fragment.glsl';
 import lightingShader from './shaders/lighting.glsl';
 
 const stats: Stats = new Stats();
@@ -27,39 +28,62 @@ const camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(
     sceneHeight / 2,
     -sceneHeight / 2,
     0,
-    100
+    1000
 );
 
 async function setupScene(): Promise<void> {
-    const testObject: THREE.Object3D = await createObjectFromFile('beams');
-    testObject.position.set(0, 0, -1);
-    geometryScene.add(testObject);
+    // const testObject: THREE.Object3D = await createObjectFromFile('beams');
+    // testObject.position.set(0, 0, -1);
+    // geometryScene.add(testObject);
 
     const backgroundObject: THREE.Object3D = await createObjectFromFile('background');
-    backgroundObject.position.set(0, 0, -3);
+    backgroundObject.position.set(0, 0, -50);
     geometryScene.add(backgroundObject);
+
+    const mountainObject: THREE.Object3D = await createObjectFromFile('mountains');
+    mountainObject.position.set(0, 0, -25);
+    geometryScene.add(mountainObject);
 }
 
-// const lightData = [defaultLight(5, 5, -3)];
 
-// Flatten the array of structs into a single array of values
-// const flattenedData: number[] = lightData.reduce((acc: number[], { positionWorld, color, falloff, radius }) => {
-//     return acc.concat(positionWorld, color, falloff, radius);
-// }, []);
-
-// Create a buffer for the uniform data
-// const lightBuffer: THREE.BufferAttribute = new THREE.BufferAttribute(new Float32Array(flattenedData), 1);
+const pointLights = [];
+pointLights.push({
+    positionWorld: new THREE.Vector3(50.0, 50.0, 15.0),
+    color: new THREE.Vector3(1.0, 1.0, 1.0),
+    falloff: 0.2,
+    radius: 300.0
+});
+pointLights.push({
+    positionWorld: new THREE.Vector3(-50.0, -50.0, 15.0),
+    color: new THREE.Vector3(0.0, 1.0, 1.0),
+    falloff: 0.2,
+    radius: 300.0
+});
+pointLights.push({
+    positionWorld: new THREE.Vector3(-50.0, 50.0, 15.0),
+    color: new THREE.Vector3(1.0, 1.0, 0.0),
+    falloff: 0.2,
+    radius: 300.0
+});
+pointLights.push({
+    positionWorld: new THREE.Vector3(50.0, -50.0, 15.0),
+    color: new THREE.Vector3(0.0, 0.0, 1.0),
+    falloff: 0.2,
+    radius: 300.0
+});
 
 const lightingScene: THREE.Scene = new THREE.Scene();
+const lightingUniforms = {
+    screenWidth: { value: sceneWidth },
+    screenHeight: { value: sceneHeight },
+    albedoMap: { value: gBuffer.textures[0] }, // Albedo texture
+    normalMap: { value: gBuffer.textures[1] }, // Normal texture
+    heightMap: { value: gBuffer.textures[2] }, // Depth texture
+    pointLights: { value: pointLights },
+    numPointLightsInUse: { value: pointLights.length }
+};
 const lightingMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-        // lightBuffer: { value: lightBuffer },
-        screenWidth: { value: sceneWidth },
-        screenHeight: { value: sceneHeight },
-        albedoMap: { value: gBuffer.textures[0] }, // Albedo texture
-        normalMap: { value: gBuffer.textures[1] }, // Normal texture
-        heightMap: { value: gBuffer.textures[2] }, // Depth texture
-    },
+    uniforms: lightingUniforms,
     glslVersion: THREE.GLSL3,
     vertexShader: vertexShader,
     fragmentShader: lightingShader,
@@ -82,10 +106,9 @@ const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth
 screenScene.add(screenQuad);
 
 function render(): void {
-    stats.begin(); // Start measuring
+    stats.begin(); 
     requestAnimationFrame(render);
 
-    // Render scene to the render target
     renderer.setRenderTarget(gBuffer);
     renderer.render(geometryScene, camera);
 
@@ -96,7 +119,7 @@ function render(): void {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.render(screenScene, camera);
 
-    stats.end(); // Stop measuring
+    stats.end();
 }
 
 setupScene().then(render);

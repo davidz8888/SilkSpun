@@ -69,8 +69,6 @@ function loadTexture(url: string): Promise<THREE.Texture> {
                 texture.minFilter = THREE.NearestFilter;
                 texture.magFilter = THREE.NearestFilter;
                 console.log(`✅ Loaded texture successfully: ${url}`);
-                console.log(`   ➤ Type:`, texture.type);
-                console.log(`   ➤ Format:`, texture.format);
                 resolve(texture);
             },
             undefined,
