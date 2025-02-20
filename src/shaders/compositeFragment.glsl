@@ -19,7 +19,7 @@ void main() {
 
     float alpha = foregroundInfo.a;
 
-    vec3 combinedColor = (alpha * foregroundInfo.rgb) + ((1.0 - alpha) * backgroundInfo.rgb)
+    vec3 combinedColor = (alpha * foregroundInfo.rgb) + ((1.0 - alpha) * backgroundInfo.rgb);
 
     fragColor = vec4(combinedColor, backgroundInfo.a + alpha);
 

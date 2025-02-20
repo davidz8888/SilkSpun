@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import Stats from 'stats-js';
 import { GBuffer } from './gBuffer';
 import { createObjectFromFile, createBackgroundFromFile } from './assetLoader';
-import { PointLight, SkyLight, InfiniteLight } from './light';
+import { pointLights, skyLight, InfiniteLight, updateSkyLight } from './light';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import geometryFragmentShader from './shaders/geometryFragment.glsl';
@@ -20,14 +20,13 @@ const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({ antialias: false
 renderer.setSize(sceneWidth, sceneHeight);
 document.body.appendChild(renderer.domElement);
 
-
 const backgroundScene: THREE.Scene = new THREE.Scene();
 const backgroundObject: THREE.Object3D = await createBackgroundFromFile('background');
 backgroundObject.position.set(0, 0, -50);
 backgroundScene.add(backgroundObject);
 
 const mountainsObject: THREE.Object3D = await createBackgroundFromFile('mountains');
-backgroundObject.position.set(0, 0, -50);
+backgroundObject.position.set(0, 0, -45);
 backgroundScene.add(mountainsObject);
 
 const backgroundTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight); 
@@ -47,37 +46,6 @@ const camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(
 const beamsObject: THREE.Object3D = await createObjectFromFile('beams');
 beamsObject.position.set(0, 0, -3);
 geometryScene.add(beamsObject);
-
-const pointLights: PointLight[] = [];
-pointLights.push({
-    positionWorld: new THREE.Vector3(50.0, 50.0, 15.0),
-    color: new THREE.Vector3(1.0, 1.0, 1.0),
-    falloff: 0.2,
-    radius: 300.0
-});
-pointLights.push({
-    positionWorld: new THREE.Vector3(-50.0, -50.0, 15.0),
-    color: new THREE.Vector3(0.0, 1.0, 1.0),
-    falloff: 0.2,
-    radius: 0.0
-});
-pointLights.push({
-    positionWorld: new THREE.Vector3(-50.0, 50.0, 15.0),
-    color: new THREE.Vector3(1.0, 1.0, 0.0),
-    falloff: 0.2,
-    radius: 0.0
-});
-pointLights.push({
-    positionWorld: new THREE.Vector3(50.0, -50.0, 15.0),
-    color: new THREE.Vector3(0.0, 0.0, 1.0),
-    falloff: 0.2,
-    radius: 0.0
-});
-
-const skyLight: SkyLight = {
-    color: new THREE.Vector3(0.5, 0.8, 1.0),
-    shadowDistance: 20.0
-};
 
 const lightingScene: THREE.Scene = new THREE.Scene();
 const lightingUniforms = {
@@ -104,7 +72,6 @@ lightingQuad.position.set(0, 0, -1.0);
 
 const lightingTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
 
-
 const compositeScene: THREE.Scene = new THREE.Scene();
 const compositeUniforms = {
     screenWidth: { value: sceneWidth },
@@ -123,19 +90,25 @@ const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
 const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), compositeMaterial);
 compositeScene.add(compositeQuad);
 
-// const screenScene: THREE.Scene = new THREE.Scene();
-// const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
-//     map: Object.assign(compositeTarget.texture, {
-//       minFilter: THREE.NearestFilter,
-//       magFilter: THREE.NearestFilter,
-//     }),
-//   });
-// const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
-// screenScene.add(screenQuad);
+const compositeTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+
+const screenScene: THREE.Scene = new THREE.Scene();
+const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+    map: Object.assign(compositeTarget.texture, {
+      minFilter: THREE.NearestFilter,
+      magFilter: THREE.NearestFilter,
+    }),
+  });
+const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
+screenScene.add(screenQuad);
+
+renderer.setClearColor(new THREE.Color(0, 0, 0), 0.0);
 
 function render(): void {
     stats.begin(); 
     requestAnimationFrame(render);
+
+    updateSkyLight();
 
     renderer.setRenderTarget(backgroundTarget);
     renderer.render(backgroundScene, camera);
@@ -146,9 +119,12 @@ function render(): void {
     renderer.setRenderTarget(lightingTarget);
     renderer.render(lightingScene, camera);
 
+    renderer.setRenderTarget(compositeTarget);
+    renderer.render(compositeScene, camera);
+
     renderer.setRenderTarget(null);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(compositeScene, camera);
+    renderer.render(screenScene, camera);
 
     stats.end();
 }

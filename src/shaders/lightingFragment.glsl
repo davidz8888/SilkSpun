@@ -158,7 +158,6 @@ vec3 skyLighting() {
         totalLight += (normalFactor * rayFactor * skyLight.color);
     }
 
-    // return skyLight.color;
     return totalLight / float(NUM_SKYLIGHTS);
 }
 
@@ -175,7 +174,7 @@ void main() {
 
     // vec3 absorbedLight = pointLighting() + ambientLighting();
     vec3 absorbedLight = skyLighting() + pointLighting();
+    vec4 albedo = texture(albedoMap, v_uv);
 
-    fragColor = vec4(texture(albedoMap, v_uv).rgb * absorbedLight, 1.0);
-
+    fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
 }

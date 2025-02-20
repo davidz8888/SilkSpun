@@ -16,11 +16,13 @@ out vec4 fragColor;
 
 struct SkyLight {
     vec3 color;
+    float shadowDistance;
 };
 
 struct InfiniteLight {
     vec3 direction;
     vec3 color;
+    vec3 shadowDistance;
 };
 
 const float HEIGHT_SCALING = 2.0;
@@ -36,7 +38,6 @@ const vec3 skyLightDirections[NUM_SKYLIGHTS] = vec3[NUM_SKYLIGHTS](
     vec3(-0.333, 1.0, 0.333)
 );
 
-uniform PointLight pointLights[NUM_POINTLIGHTS];
 uniform SkyLight skyLight;
 uniform InfiniteLight infiniteLight;
 
@@ -48,33 +49,34 @@ vec3 skyLighting() {
 
     for (int i = 0; i < NUM_SKYLIGHTS; i++) {
 
-
         vec3 lightDirection = skyLightDirections[i];
 
         vec3 normal = texture(normalMap, v_uv).rgb;
         float normalFactor = max((dot(normal, lightDirection)), 0.0);
 
         totalLight += (normalFactor * skyLight.color);
+
     }
 
-    // return skyLight.color;
     return totalLight / float(NUM_SKYLIGHTS);
 }
 
 vec3 infiniteLighting() {
-    return texture(heightMap, v_uv).g * ambientLight;
+    return vec3(0);
 }
 
 vec3 ambientLighting() {
-    return ambientLight;
+    return vec3(0);
 }
 
 
 void main() {
 
-    // vec3 absorbedLight = pointLighting() + ambientLighting();
-    vec3 absorbedLight = pointLighting() + ambientLighting();
+    vec4 albedo = texture(albedoMap, v_uv);
 
-    fragColor = vec4(texture(albedoMap, v_uv).rgb * absorbedLight, 1.0);
+    if (albedo.a == 0.0) discard;
 
+    vec3 absorbedLight = skyLighting();
+
+    fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
 }

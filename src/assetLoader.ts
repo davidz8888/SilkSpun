@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import defualtVertexShader from './shaders/defaultVertex.glsl';
 import geometryFragmentShader from './shaders/geometryFragment.glsl';
 import backgroundFragmentShader from './shaders/backgroundFragment.glsl';
+import { skyLight, InfiniteLight } from './light';
 
 const textureLoader: THREE.TextureLoader = new THREE.TextureLoader();
 
@@ -29,25 +30,27 @@ export async function createObjectFromFile(name: string): Promise<THREE.Mesh> {
     return object;
 }
 
+
 export async function createBackgroundFromFile(name: string): Promise<THREE.Mesh> {
     const pathPrefix: string = './backgrounds/';
     const albedoMap: THREE.Texture = await loadTexture(`${pathPrefix}${name}_albedo.png`);
     const normalMap: THREE.Texture = await loadTexture(`${pathPrefix}${name}_normal.png`);
 
     // Create the square that faces the camera
-    const objectGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
-    const objectMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+    const backgroundGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
+    const backgroundMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
         uniforms: {
             albedoMap: { value: albedoMap },
             normalMap: { value: normalMap },
+            skyLight: { value: skyLight }
         },
         glslVersion: THREE.GLSL3,
         vertexShader: defualtVertexShader,
         fragmentShader: backgroundFragmentShader
     });
-    const object: THREE.Mesh = new THREE.Mesh(objectGeometry, objectMaterial);
+    const background: THREE.Mesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
 
-    return object;
+    return background;
 }
 
 
