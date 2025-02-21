@@ -158,7 +158,7 @@ vec3 skyLighting() {
 
         }
 
-        totalLight += (normalFactor * skyLight.color) / float(NUM_SKYLIGHTS);
+        totalLight += (normalFactor * rayFactor * skyLight.color) / float(NUM_SKYLIGHTS);
     }
 
     return totalLight;
@@ -198,7 +198,7 @@ vec3 infiniteLighting() {
 
         }
 
-        totalLight += (normalFactor * light.color);
+        totalLight += (normalFactor * rayFactor * light.color);
     }
 
     return totalLight;
@@ -207,12 +207,12 @@ vec3 infiniteLighting() {
 
 vec3 ambientLighting() {
     return vec3(0.05, 0.05, 0.05);
-}
+} 
 
 
 void main() {
 
-    vec3 absorbedLight = clamp(infiniteLighting() + skyLighting(), 0.0, 1.0);
+    vec3 absorbedLight = clamp(ambientLighting() + infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
 
     // vec3 absorbedLight = clamp(infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
     vec4 albedo = texture(albedoMap, v_uv);

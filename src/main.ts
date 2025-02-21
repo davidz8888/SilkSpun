@@ -5,7 +5,6 @@ import { createObjectFromFile, createBackgroundFromFile } from './assetLoader';
 import { pointLights, skyLight, infiniteLights, updateDayNight } from './light';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
-import geometryFragmentShader from './shaders/geometryFragment.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
 
@@ -21,19 +20,16 @@ renderer.setSize(sceneWidth, sceneHeight);
 document.body.appendChild(renderer.domElement);
 
 const backgroundScene: THREE.Scene = new THREE.Scene();
-const backgroundObject: THREE.Object3D = await createBackgroundFromFile('background');
-backgroundObject.position.set(0, 0, -50);
-backgroundScene.add(backgroundObject);
-
-const mountainsObject: THREE.Object3D = await createBackgroundFromFile('mountains');
-backgroundObject.position.set(0, 0, -45);
-backgroundScene.add(mountainsObject);
-
-const backgroundTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight); 
-
-const gBuffer: THREE.WebGLRenderTarget = GBuffer(sceneWidth, sceneHeight);
-
 const geometryScene: THREE.Scene = new THREE.Scene();
+const lightingScene: THREE.Scene = new THREE.Scene();
+const compositeScene: THREE.Scene = new THREE.Scene();
+const screenScene: THREE.Scene = new THREE.Scene();
+
+const backgroundTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+const gBuffer: THREE.WebGLRenderTarget = GBuffer(sceneWidth, sceneHeight);
+const lightingTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+const compositeTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+
 const camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(
     -sceneWidth / 2,
     sceneWidth / 2,
@@ -43,75 +39,84 @@ const camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(
     1000
 );
 
-// const beamsObject: THREE.Object3D = await createObjectFromFile('beams');
-// beamsObject.position.set(0, 0, -3);
-// geometryScene.add(beamsObject);
-
-const iceBlocksObject: THREE.Object3D = await createObjectFromFile('ice_blocks');
-iceBlocksObject.position.set(0, 0, -3);
-geometryScene.add(iceBlocksObject);
-
-const lightingScene: THREE.Scene = new THREE.Scene();
-const lightingUniforms = {
-    screenWidth: { value: sceneWidth },
-    screenHeight: { value: sceneHeight },
-    albedoMap: { value: gBuffer.textures[0] },
-    normalMap: { value: gBuffer.textures[1] },
-    heightMap: { value: gBuffer.textures[2] }, 
-    pointLights: { value: pointLights },
-    numPointLightsInUse: { value: pointLights.length },
-    skyLight: { value: skyLight },
-    infiniteLights: { value: infiniteLights }
-
-};
-const lightingMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
-    uniforms: lightingUniforms,
-    glslVersion: THREE.GLSL3,
-    vertexShader: defaultVertexShader,
-    fragmentShader: lightingFragmentShader,
-});
-
-const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), lightingMaterial);
-lightingScene.add(lightingQuad);
-lightingQuad.position.set(0, 0, -1.0);
-
-const lightingTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-
-const compositeScene: THREE.Scene = new THREE.Scene();
-const compositeUniforms = {
-    screenWidth: { value: sceneWidth },
-    screenHeight: { value: sceneHeight },
-    background: { value: backgroundTarget.texture },
-    foreground: { value: lightingTarget.texture },
-
-};
-const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
-    uniforms: compositeUniforms,
-    glslVersion: THREE.GLSL3,
-    vertexShader: defaultVertexShader,
-    fragmentShader: compositeFragmentShader,
-})
-
-const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), compositeMaterial);
-compositeScene.add(compositeQuad);
-
-const compositeTarget: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-
-const screenScene: THREE.Scene = new THREE.Scene();
-const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
-    map: Object.assign(compositeTarget.texture, {
-      minFilter: THREE.NearestFilter,
-      magFilter: THREE.NearestFilter,
-    }),
-  });
-const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
-screenScene.add(screenQuad);
-
 renderer.setClearColor(new THREE.Color(0, 0, 0), 0.0);
 
+// 🌟 Async Initialization Function
+async function init() {
+    // Load background objects
+    const backgroundObject = await createBackgroundFromFile('background');
+    backgroundObject.position.set(0, 0, -50);
+    backgroundScene.add(backgroundObject);
 
+    const mountainsObject = await createBackgroundFromFile('mountains');
+    mountainsObject.position.set(0, 0, -45);
+    backgroundScene.add(mountainsObject);
+
+    // Load geometry objects
+    const iceBlocksObject = await createObjectFromFile('ice_blocks');
+    iceBlocksObject.position.set(0, 0, -3);
+    geometryScene.add(iceBlocksObject);
+
+    // Lighting Pass
+    const lightingUniforms = {
+        screenWidth: { value: sceneWidth },
+        screenHeight: { value: sceneHeight },
+        albedoMap: { value: gBuffer.textures[0] },
+        normalMap: { value: gBuffer.textures[1] },
+        heightMap: { value: gBuffer.textures[2] },
+        pointLights: { value: pointLights },
+        numPointLightsInUse: { value: pointLights.length },
+        skyLight: { value: skyLight },
+        infiniteLights: { value: infiniteLights }
+    };
+
+    const lightingMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+        uniforms: lightingUniforms,
+        glslVersion: THREE.GLSL3,
+        vertexShader: defaultVertexShader,
+        fragmentShader: lightingFragmentShader,
+    });
+
+    const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), lightingMaterial);
+    lightingScene.add(lightingQuad);
+    lightingQuad.position.set(0, 0, -1.0);
+
+    // Composite Pass
+    const compositeUniforms = {
+        screenWidth: { value: sceneWidth },
+        screenHeight: { value: sceneHeight },
+        background: { value: backgroundTarget.texture },
+        foreground: { value: lightingTarget.texture },
+    };
+
+    const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+        uniforms: compositeUniforms,
+        glslVersion: THREE.GLSL3,
+        vertexShader: defaultVertexShader,
+        fragmentShader: compositeFragmentShader,
+    });
+
+    const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), compositeMaterial);
+    compositeScene.add(compositeQuad);
+
+    // Screen Pass
+    const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+        map: Object.assign(compositeTarget.texture, {
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+        }),
+    });
+
+    const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
+    screenScene.add(screenQuad);
+
+    // Start Rendering Loop
+    render();
+}
+
+// 🎥 Render Loop
 function render(): void {
-    stats.begin(); 
+    stats.begin();
     requestAnimationFrame(render);
 
     updateDayNight();
@@ -135,4 +140,5 @@ function render(): void {
     stats.end();
 }
 
-render();
+// 🔥 Start Initialization
+init();
