@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import Stats from 'stats-js';
 import { GBuffer } from './gBuffer';
 import { createObjectFromFile, createBackgroundFromFile } from './assetLoader';
-import { pointLights, skyLight, InfiniteLight, updateSkyLight } from './light';
+import { pointLights, skyLight, infiniteLights, updateDayNight } from './light';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import geometryFragmentShader from './shaders/geometryFragment.glsl';
@@ -43,9 +43,13 @@ const camera: THREE.OrthographicCamera = new THREE.OrthographicCamera(
     1000
 );
 
-const beamsObject: THREE.Object3D = await createObjectFromFile('beams');
-beamsObject.position.set(0, 0, -3);
-geometryScene.add(beamsObject);
+// const beamsObject: THREE.Object3D = await createObjectFromFile('beams');
+// beamsObject.position.set(0, 0, -3);
+// geometryScene.add(beamsObject);
+
+const iceBlocksObject: THREE.Object3D = await createObjectFromFile('ice_blocks');
+iceBlocksObject.position.set(0, 0, -3);
+geometryScene.add(iceBlocksObject);
 
 const lightingScene: THREE.Scene = new THREE.Scene();
 const lightingUniforms = {
@@ -56,7 +60,8 @@ const lightingUniforms = {
     heightMap: { value: gBuffer.textures[2] }, 
     pointLights: { value: pointLights },
     numPointLightsInUse: { value: pointLights.length },
-    skyLight: { value: skyLight }
+    skyLight: { value: skyLight },
+    infiniteLights: { value: infiniteLights }
 
 };
 const lightingMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
@@ -104,11 +109,12 @@ screenScene.add(screenQuad);
 
 renderer.setClearColor(new THREE.Color(0, 0, 0), 0.0);
 
+
 function render(): void {
     stats.begin(); 
     requestAnimationFrame(render);
 
-    updateSkyLight();
+    updateDayNight();
 
     renderer.setRenderTarget(backgroundTarget);
     renderer.render(backgroundScene, camera);

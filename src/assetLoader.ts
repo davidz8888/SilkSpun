@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import defualtVertexShader from './shaders/defaultVertex.glsl';
 import geometryFragmentShader from './shaders/geometryFragment.glsl';
 import backgroundFragmentShader from './shaders/backgroundFragment.glsl';
-import { skyLight, InfiniteLight } from './light';
+import { skyLight, infiniteLights } from './light';
 
 const textureLoader: THREE.TextureLoader = new THREE.TextureLoader();
 
@@ -42,7 +42,8 @@ export async function createBackgroundFromFile(name: string): Promise<THREE.Mesh
         uniforms: {
             albedoMap: { value: albedoMap },
             normalMap: { value: normalMap },
-            skyLight: { value: skyLight }
+            skyLight: { value: skyLight },
+            infiniteLights: { value: infiniteLights}
         },
         glslVersion: THREE.GLSL3,
         vertexShader: defualtVertexShader,

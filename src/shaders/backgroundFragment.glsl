@@ -18,17 +18,8 @@ struct SkyLight {
     vec3 color;
     float shadowDistance;
 };
-
-struct InfiniteLight {
-    vec3 direction;
-    vec3 color;
-    vec3 shadowDistance;
-};
-
-const float HEIGHT_SCALING = 2.0;
-#define NUM_POINTLIGHTS 4
 #define NUM_SKYLIGHTS 6
-
+uniform SkyLight skyLight;
 const vec3 skyLightDirections[NUM_SKYLIGHTS] = vec3[NUM_SKYLIGHTS](
     vec3(0.0, 1.0, 0.0),
     vec3(1.0, 1.0, 0.0),
@@ -38,10 +29,14 @@ const vec3 skyLightDirections[NUM_SKYLIGHTS] = vec3[NUM_SKYLIGHTS](
     vec3(-0.333, 1.0, 0.333)
 );
 
-uniform SkyLight skyLight;
-uniform InfiniteLight infiniteLight;
 
-
+struct InfiniteLight {
+    vec3 direction;
+    vec3 color;
+    float shadowDistance;
+};
+#define NUM_INFINITELIGHTS 2
+uniform InfiniteLight infiniteLights[NUM_INFINITELIGHTS];
 
 vec3 skyLighting() {
 
@@ -51,8 +46,8 @@ vec3 skyLighting() {
 
         vec3 lightDirection = skyLightDirections[i];
 
-        vec3 normal = texture(normalMap, v_uv).rgb;
-        float normalFactor = max((dot(normal, lightDirection)), 0.0);
+        vec3 normal = normalize(texture(normalMap, v_uv).rgb * 2.0 - 1.0);
+        float normalFactor = max((dot(normal, normalize(lightDirection))), 0.0);
 
         totalLight += (normalFactor * skyLight.color);
 
@@ -62,7 +57,22 @@ vec3 skyLighting() {
 }
 
 vec3 infiniteLighting() {
-    return vec3(0);
+    
+    vec3 totalLight = vec3(0);
+
+    for (int i = 0; i < NUM_INFINITELIGHTS; i++) {
+
+        InfiniteLight light = infiniteLights[i];
+        vec3 lightDirection = light.direction;
+
+        vec3 normal = normalize(texture(normalMap, v_uv).rgb * 2.0 - 1.0);
+        float normalFactor = max((dot(normal, normalize(lightDirection))), 0.0);
+
+        totalLight += (normalFactor * light.color);
+
+    }
+
+    return totalLight;
 }
 
 vec3 ambientLighting() {
@@ -76,7 +86,7 @@ void main() {
 
     if (albedo.a == 0.0) discard;
 
-    vec3 absorbedLight = skyLighting();
+    vec3 absorbedLight = clamp(skyLighting() + infiniteLighting(), 0.0, 1.0);
 
     fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
 }

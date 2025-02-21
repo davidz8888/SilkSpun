@@ -15,12 +15,12 @@ layout(location = 2) out vec4 fragColor2; // Height
 
 void main() {
     vec4 albedo = texture(albedoMap, v_uv);
-    vec3 normal = texture(normalMap, v_uv).rgb;
+    vec4 normal = texture(normalMap, v_uv);
     float height = texture(heightMap, v_uv).r;
 
     if (albedo.a <= 0.0) discard;
 
     fragColor0 = albedo;  // Albedo to the first render target
-    fragColor1 = vec4(normal * 2.0 - 1.0, 1.0);  // Normal to the second render target (encoded)
+    fragColor1 = normal;  // Normal to the second render target (encoded)
     fragColor2 = vec4(v_positionWorld.z / -100.0, height, 0.0, 1.0);  // Depth/Height to the third render target
 }
