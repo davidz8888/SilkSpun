@@ -24,7 +24,7 @@ pointLights.push({
     positionWorld: new THREE.Vector3(50.0, 50.0, 15.0),
     color: new THREE.Vector3(1.0, 1.0, 1.0),
     falloff: 0.2,
-    radius: 300.0
+    radius: 0.0
 });
 pointLights.push({
     positionWorld: new THREE.Vector3(-50.0, -50.0, 15.0),
