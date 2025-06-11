@@ -29,7 +29,7 @@ export class TestScene extends Scene {
         this.testWall = new PassiveEntity('test_wall');
         this.testWall.initMesh();
 
-        this.wallLayer = new Layer('wall_layer', -32);
+        this.wallLayer = new Layer('wall_layer', -302);
         this.wallLayer.addEntity(this.testWall, 0, 0);
 
         this.addLayer(this.wallLayer);

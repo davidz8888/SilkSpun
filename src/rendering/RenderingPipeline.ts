@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Entity } from '../core/Entity';
 import { ForegroundEntity } from '../core/ForegroundEntity';
 import { BackgroundEntity } from '../core/BackgroundEntity';
-import { skyLight, infiniteLights, pointLights } from '../lightManager';
+import { skyLight, infiniteLights, pointLights, updateDayNight, debugDayNight } from '../lightManager';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
@@ -40,6 +40,9 @@ export class RenderingPipeline {
         this.sceneHeight = sceneHeight;
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+        this.renderer.setSize(sceneWidth, sceneHeight);
+        document.body.appendChild(this.renderer.domElement);
+
         this.camera = new THREE.OrthographicCamera(
             -this.sceneWidth / 2,
             this.sceneWidth / 2,
@@ -118,6 +121,9 @@ export class RenderingPipeline {
 
 
     public render() {
+
+        // debugDayNight();
+        updateDayNight();
 
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);

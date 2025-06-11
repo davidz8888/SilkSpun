@@ -79,6 +79,15 @@ export function updateDayNight(): void {
 
 }
 
+export function debugDayNight(): void {
+    const millisInDay = 60 * 1000; // 1 minute = full day cycle
+    const currentTime = (Date.now() % millisInDay) / millisInDay; // 0 to 1 range
+    const timeOfDay = currentTime * 24; // Convert 0-1 to 0-24 hour cycle
+
+    skyLight.color.lerpVectors(new THREE.Vector3(0), new THREE.Vector3(1), timeOfDay/24);
+    sunLight.color = new THREE.Vector3(0);
+
+}
 
 function updateSky(timeOfDay: number): void{
     const morningColor = new THREE.Vector3(0.3, 0.2, 0.1);  // Orange (Sunrise)
