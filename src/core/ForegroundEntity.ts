@@ -8,7 +8,7 @@ import geometryFragmentShader from '../rendering/shaders/geometryFragment.glsl';
 export abstract class ForegroundEntity extends Entity {
 
     protected async createTHREEMesh(): Promise<THREE.Mesh> {
-        const pathPrefix: string = '/Silkspun/assets/textures/';
+        const pathPrefix: string = './assets/textures/';
         const albedoMap: THREE.Texture = await ForegroundEntity.loadTexture(`${pathPrefix}${this.textureName}_albedo.png`);
         const normalMap: THREE.Texture = await ForegroundEntity.loadTexture(`${pathPrefix}${this.textureName}_normal.png`);
         const heightMap: THREE.Texture = await ForegroundEntity.loadTexture(`${pathPrefix}${this.textureName}_height.png`);
