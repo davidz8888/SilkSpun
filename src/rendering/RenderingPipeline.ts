@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { Entity } from '../core/Entity';
 import { ForegroundEntity } from '../core/ForegroundEntity';
 import { BackgroundEntity } from '../core/BackgroundEntity';
+import { skyLight, infiniteLights, pointLights } from '../lightManager';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
@@ -30,9 +31,6 @@ export class RenderingPipeline {
     private compositeScene: THREE.Scene;
     private screenScene: THREE.Scene;
 
-    // Shader materials
-    private lightingMaterial: THREE.ShaderMaterial;
-    private compositeMaterial: THREE.ShaderMaterial;
 
     constructor(
         sceneWidth: number,
@@ -65,33 +63,56 @@ export class RenderingPipeline {
         this.compositeScene = new THREE.Scene();
         this.screenScene = new THREE.Scene();
 
-        // Placeholder shader materials
-        this.lightingMaterial = this.createLightingMaterial();
-        this.compositeMaterial = this.createCompositeMaterial();
+        const lightingUniforms = {
+            screenWidth: { value: sceneWidth },
+            screenHeight: { value: sceneHeight },
+            albedoMap: { value: this.gBuffer.textures[0] },
+            normalMap: { value: this.gBuffer.textures[1] },
+            heightMap: { value: this.gBuffer.textures[2] },
+            pointLights: { value: pointLights },
+            numPointLightsInUse: { value: pointLights.length },
+            skyLight: { value: skyLight },
+            infiniteLights: { value: infiniteLights }
+        };
 
-        // Lighting Quad
-        const lightingQuad = new THREE.Mesh(
-            new THREE.PlaneGeometry(sceneWidth, sceneHeight),
-            this.lightingMaterial
-        );
-        lightingQuad.position.set(0, 0, -1.0);
+        const lightingMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: lightingUniforms,
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: lightingFragmentShader,
+        });
+
+        const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), lightingMaterial);
         this.lightingScene.add(lightingQuad);
+        lightingQuad.position.set(0, 0, -1.0);
 
-        // Composite Quad
-        const compositeQuad = new THREE.Mesh(
-            new THREE.PlaneGeometry(sceneWidth, sceneHeight),
-            this.compositeMaterial
-        );
+        // Composite Pass
+        const compositeUniforms = {
+            screenWidth: { value: sceneWidth },
+            screenHeight: { value: sceneHeight },
+            background: { value: this.backgroundTarget.texture },
+            foreground: { value: this.lightingTarget.texture },
+        };
+
+        const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: compositeUniforms,
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: compositeFragmentShader,
+        });
+
+        const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), compositeMaterial);
         this.compositeScene.add(compositeQuad);
 
-        // Screen Quad
-        const screenQuad = new THREE.Mesh(
-            new THREE.PlaneGeometry(sceneWidth, sceneHeight),
-            new THREE.MeshBasicMaterial({
-                map: this.compositeTarget.texture,
-                transparent: false
-            })
-        );
+        // Screen Pass
+        const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
+            map: Object.assign(this.compositeTarget.texture, {
+                minFilter: THREE.NearestFilter,
+                magFilter: THREE.NearestFilter,
+            }),
+        });
+
+        const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
         this.screenScene.add(screenQuad);
     }
 
@@ -130,9 +151,7 @@ export class RenderingPipeline {
         } else {
             this.addEntity(entities);
         }
-
     }
-
 
     public removeEntities(entities: Entity | Entity[]) {
 
@@ -144,10 +163,8 @@ export class RenderingPipeline {
         } else {
             this.removeEntity(entities);
         }
-
     }
 
-    
     private async addEntity(entity: Entity) {
 
         if (entity.getMesh() == null) {
@@ -161,7 +178,6 @@ export class RenderingPipeline {
         }
     }
 
-    
     private removeEntity(entity: Entity) {
 
         if (entity.getMesh() != null) {
@@ -174,28 +190,11 @@ export class RenderingPipeline {
         }
     }
 
-
     private createGBuffer(width: number, height: number): THREE.WebGLRenderTarget {
         return new THREE.WebGLRenderTarget(width, height, {
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
             count: 3
-        });
-    }
-
-
-    private createLightingMaterial(): THREE.ShaderMaterial {
-        return new THREE.ShaderMaterial({
-            vertexShader: defaultVertexShader,
-            fragmentShader: lightingFragmentShader
-        });
-    }
-
-
-    private createCompositeMaterial(): THREE.ShaderMaterial {
-        return new THREE.ShaderMaterial({
-            vertexShader: defaultVertexShader,
-            fragmentShader: compositeFragmentShader
         });
     }
 

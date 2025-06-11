@@ -23,4 +23,6 @@ void main() {
 
     fragColor = vec4(combinedColor, backgroundInfo.a + alpha);
 
+    // fragColor = vec4(1, 1, 0, 1);
+
 }

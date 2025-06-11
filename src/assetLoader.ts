@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import defualtVertexShader from './shaders/defaultVertex.glsl';
 import geometryFragmentShader from './shaders/geometryFragment.glsl';
 import backgroundFragmentShader from './shaders/backgroundFragment.glsl';
-import { skyLight, infiniteLights } from './light';
+import { skyLight, infiniteLights } from './lightManager';
 
 const textureLoader: THREE.TextureLoader = new THREE.TextureLoader();
 
