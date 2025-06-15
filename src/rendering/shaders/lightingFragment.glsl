@@ -14,7 +14,7 @@ uniform sampler2D heightMap;
 
 out vec4 fragColor;
 
-const float HEIGHT_SCALING = 2.0;
+const float HEIGHT_SCALING = 255.0;
 
 struct PointLight {
     vec3 positionWorld;
