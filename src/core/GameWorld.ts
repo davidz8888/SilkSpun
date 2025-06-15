@@ -2,8 +2,8 @@
 
 import { Scene } from './Scene';
 import { Layer } from './Layer';
-import { Entity } from './Entity';
-import { ActiveEntity } from './ActiveEntity';
+import { Entity } from '../entities/Entity';
+import { ActiveEntity } from '../entities/ActiveEntity';
 
 export class GameWorld {
     private layers: Layer[] = [];

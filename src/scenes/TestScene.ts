@@ -1,6 +1,6 @@
 // src/scenes/TestScene.ts
 
-import { PassiveEntity } from '../core/PassiveEntity';
+import { PassiveEntity } from '../entities/PassiveEntity';
 import { Scene } from '../core/Scene';
 import { Layer } from '../core/Layer';
 

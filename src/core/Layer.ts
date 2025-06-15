@@ -1,7 +1,7 @@
 // src/core/Layer.ts
 
-import { Entity } from './Entity';
-import { ActiveEntity } from './ActiveEntity';
+import { Entity } from '../entities/Entity';
+import { ActiveEntity } from '../entities/ActiveEntity';
 
 export class Layer {
 

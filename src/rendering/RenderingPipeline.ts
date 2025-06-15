@@ -2,10 +2,10 @@
 
 import * as THREE from 'three';
 
-import { Entity } from '../core/Entity';
-import { ForegroundEntity } from '../core/ForegroundEntity';
-import { BackgroundEntity } from '../core/BackgroundEntity';
-import { skyLight, infiniteLights, pointLights, updateDayNight, debugDayNight } from '../lightManager';
+import { Entity } from '../entities/Entity';
+import { ForegroundEntity } from '../entities/ForegroundEntity';
+import { BackgroundEntity } from '../entities/BackgroundEntity';
+import { skyLight, infiniteLights, pointLights, updateDayNight, debugDayNight } from '../controller/LightingController';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
@@ -17,6 +17,9 @@ export class RenderingPipeline {
 
     private renderer: THREE.WebGLRenderer;
     private camera: THREE.Camera;
+
+    // Materials
+    private lightingMaterial: THREE.ShaderMaterial;
 
     // Render targets
     private backgroundTarget: THREE.WebGLRenderTarget;
@@ -78,14 +81,14 @@ export class RenderingPipeline {
             infiniteLights: { value: infiniteLights }
         };
 
-        const lightingMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+        this.lightingMaterial = new THREE.ShaderMaterial({
             uniforms: lightingUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
             fragmentShader: lightingFragmentShader,
         });
 
-        const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), lightingMaterial);
+        const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.lightingMaterial);
         this.lightingScene.add(lightingQuad);
         lightingQuad.position.set(0, 0, -1.0);
 
@@ -134,6 +137,11 @@ export class RenderingPipeline {
         this.renderer.render(this.geometryScene, this.camera);
 
         // Lighting Pass
+        // Update light uniforms explicitly each frame
+        this.lightingMaterial.uniforms.pointLights.value = pointLights;
+        this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
+        this.lightingMaterial.uniforms.skyLight.value = skyLight;
+        this.lightingMaterial.uniforms.infiniteLights.value = infiniteLights;
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
@@ -194,6 +202,10 @@ export class RenderingPipeline {
                 this.backgroundScene.remove(entity.getMesh()!);
             }
         }
+    }
+    
+    public addLight() {
+
     }
 
     private createGBuffer(width: number, height: number): THREE.WebGLRenderTarget {

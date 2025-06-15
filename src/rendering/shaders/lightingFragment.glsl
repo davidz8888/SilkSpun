@@ -22,9 +22,9 @@ struct PointLight {
     float falloff;
     float radius;
 };
-#define NUM_POINTLIGHTS 4
-uniform PointLight pointLights[NUM_POINTLIGHTS];
-
+#define MAX_POINTLIGHTS 100
+uniform PointLight pointLights[MAX_POINTLIGHTS];
+uniform int num_pointLightsInUse;
 
 struct SkyLight {
     vec3 color;
