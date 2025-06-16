@@ -5,11 +5,14 @@ import * as THREE from 'three';
 import { Entity } from '../entities/Entity';
 import { ForegroundEntity } from '../entities/ForegroundEntity';
 import { BackgroundEntity } from '../entities/BackgroundEntity';
-import { skyLight, infiniteLights, pointLights, updateDayNight, debugDayNight } from '../controller/LightingController';
+import { SkyLight, skyLight, InfiniteLight, infiniteLights, PointLight, pointLights, updateDayNight, debugDayNight } from '../controller/LightingController';
+import { Vec3 } from '../math/Vec3';
+
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
+import { positionWorld } from 'three/tsl';
 
 export class RenderingPipeline {
     private sceneWidth: number;
@@ -69,16 +72,27 @@ export class RenderingPipeline {
         this.compositeScene = new THREE.Scene();
         this.screenScene = new THREE.Scene();
 
+        // const pointlightsTHREE: PointLightTHREE[] = RenderingPipeline.convertPointLights(pointLights);
+
+        const pointLightNew: PointLightTHREE = {
+            positionWorld: new THREE.Vector3(0),
+            color: new THREE.Vector3(1),
+            falloff: 10,
+            radius: 10
+        }
+
+        const debugPointLights: PointLightTHREE[] = [pointLightNew];
+
         const lightingUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             albedoMap: { value: this.gBuffer.textures[0] },
             normalMap: { value: this.gBuffer.textures[1] },
             heightMap: { value: this.gBuffer.textures[2] },
-            pointLights: { value: pointLights },
-            numPointLightsInUse: { value: pointLights.length },
-            skyLight: { value: skyLight },
-            infiniteLights: { value: infiniteLights }
+            pointLights: { value: debugPointLights },
+            numPointLightsInUse: { value: debugPointLights.length },
+            skyLight: { value: RenderingPipeline.convertSkyLight(skyLight) },
+            infiniteLights: { value: RenderingPipeline.convertInfiniteLights(infiniteLights) }
         };
 
         this.lightingMaterial = new THREE.ShaderMaterial({
@@ -138,10 +152,10 @@ export class RenderingPipeline {
 
         // Lighting Pass
         // Update light uniforms explicitly each frame
-        this.lightingMaterial.uniforms.pointLights.value = pointLights;
-        this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
-        this.lightingMaterial.uniforms.skyLight.value = skyLight;
-        this.lightingMaterial.uniforms.infiniteLights.value = infiniteLights;
+        // this.lightingMaterial.uniforms.pointLights.value = ;
+        // this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
+        // this.lightingMaterial.uniforms.skyLight.value = RenderingPipeline.convertSkyLight(skyLight);
+        // this.lightingMaterial.uniforms.infiniteLights.value = RenderingPipeline.convertInfiniteLights(infiniteLights);
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
@@ -208,6 +222,36 @@ export class RenderingPipeline {
 
     }
 
+
+    
+    private static convertPointLights(pointlights: PointLight[]): PointLightTHREE[] {
+        return pointlights.map(pointLight => ({
+            positionWorld: RenderingPipeline.convertToThreeVec3(pointLight.positionWorld),
+            color: RenderingPipeline.convertToThreeVec3(pointLight.color),
+            falloff: pointLight.falloff,
+            radius: pointLight.radius,
+        }));
+    }
+
+    private static convertInfiniteLights(infiniteLights: InfiniteLight[]): InfiniteLightTHREE[] {
+        return infiniteLights.map(infiniteLight => ({
+            direction: RenderingPipeline.convertToThreeVec3(infiniteLight.direction),
+            color: RenderingPipeline.convertToThreeVec3(infiniteLight.color),
+            shadowDistance: infiniteLight.shadowDistance,
+        }));
+    }
+
+    private static convertSkyLight(skyLight: SkyLight): SkyLightTHREE {
+        return {
+            color: RenderingPipeline.convertToThreeVec3(skyLight.color),
+            shadowDistance: skyLight.shadowDistance
+        }
+    }
+
+    private static convertToThreeVec3(v: Vec3): THREE.Vector3 {
+        return new THREE.Vector3(v.x, v.y, v.z);
+    }
+
     private createGBuffer(width: number, height: number): THREE.WebGLRenderTarget {
         return new THREE.WebGLRenderTarget(width, height, {
             minFilter: THREE.NearestFilter,
@@ -226,4 +270,23 @@ export class RenderingPipeline {
     }
 
 
+}
+
+
+interface PointLightTHREE {
+    positionWorld: THREE.Vector3,
+    color: THREE.Vector3,
+    falloff: number,
+    radius: number;
+}
+
+interface InfiniteLightTHREE {
+    direction: THREE.Vector3,
+    color: THREE.Vector3,
+    shadowDistance: number
+}
+
+interface SkyLightTHREE {
+    color: THREE.Vector3,
+    shadowDistance: number
 }
