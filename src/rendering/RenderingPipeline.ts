@@ -200,10 +200,6 @@ export class RenderingPipeline {
 
     private async addEntity(entity: Entity) {
 
-        if (entity.getMesh() == null) {
-            await entity.initMesh();
-        }
-
         if (entity instanceof ForegroundEntity) {
             this.geometryScene.add(entity.getMesh()!);
         } else if (entity instanceof BackgroundEntity) {

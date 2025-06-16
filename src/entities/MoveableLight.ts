@@ -8,31 +8,39 @@ import { Vec3 } from '../math/Vec3';
 
 
 
-export class PlayerLightEntity extends ActiveEntity {
+export class MoveableLight extends ActiveEntity {
 
   private moveSpeed: number = 50;
   private input: InputController | null = null;
-  private pointLight: PointLight;
+  private pointLight: PointLight | null = null;
 
-  constructor() {
+  constructor(textureName: string | null = null) {
 
-    super();
+    super(textureName);
+
+  }
+
+  public setInputController(controller: InputController) {
+    this.input = controller;
+  }
+
+
+  public override async initialize(x: number, y: number, z: number) {
 
     this.pointLight = {
-      positionWorld: new Vec3(0, 0, 0),
+      positionWorld: new Vec3(x, y, z),
       color: new Vec3(1.0, 0.9, 0.6),
       falloff: 1.0,
       radius: 150.0,
     };
 
+    addPointLight(this.pointLight);
   }
 
-  setInputController(controller: InputController) {
-    this.input = controller;
-  }
 
-  update(dt: number): void {
+  public update(dt: number): void {
 
+    if (!this.initialized) return;
     if (!this.input) return;
 
     const moveVec = new Vec3();
@@ -43,9 +51,8 @@ export class PlayerLightEntity extends ActiveEntity {
     if (this.input.isKeyDown('d')) moveVec.x += this.moveSpeed;
 
 
-    this.positionWorld.add(moveVec);
-
-    this.pointLight.positionWorld.add(moveVec);
+    this.positionWorld!.add(moveVec);
+    this.pointLight!.positionWorld.add(moveVec);
   }
 
 }

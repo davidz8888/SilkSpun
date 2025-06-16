@@ -16,15 +16,15 @@ export class Layer {
         this.zValue = zValue;
     }
 
-    public addEntity(entity: Entity, x: number, y: number) {
+    public async addEntity(entity: Entity, x: number, y: number) {
 
+        await entity.initialize(x, y, this.zValue);
         this.entities.push(entity);
 
         if (entity instanceof ActiveEntity) {
             this.activeEntities.push(entity);
         }
 
-        entity.setPosition(x, y, this.zValue);
     }
 
     public removeEntity(entity: Entity) {

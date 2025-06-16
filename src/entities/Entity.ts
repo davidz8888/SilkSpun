@@ -6,14 +6,14 @@ import { Vec3 } from '../math/Vec3'
 export abstract class Entity {
     
     protected positionWorld: Vec3 | null;
-    protected positionSet: boolean;
+    protected initialized: boolean;
 
     protected textureName: string | null;
     protected mesh: THREE.Mesh | null;
 
     public constructor(textureName: string | null = null) {
         this.positionWorld = null;
-        this.positionSet = false;
+        this.initialized = false;
 
         this.textureName = textureName;
 
@@ -24,7 +24,7 @@ export abstract class Entity {
         this.mesh = null;
     }
 
-    public async initMesh() {
+    public async initialize(x: number, y: number, z: number) {
         this.mesh = await this.createTHREEMesh();
     }
 
@@ -33,10 +33,8 @@ export abstract class Entity {
     }
 
     public setPosition(x: number, y: number, z: number) {
-        this.positionWorld.x = x;
-        this.positionWorld.y = y;
-        this.positionWorld.z = z;
-        this.positionSet = true;
+        this.positionWorld = new Vec3(x, y, z);
+        this.initialized = true;
     }
 
 

@@ -10,30 +10,30 @@ export abstract class ActiveEntity extends ForegroundEntity{
     public height: number = 1;
 
     public syncMeshState() {
-        if (this.mesh != null && this.positionSet) {
-            this.mesh.position.x = this.x!;
-            this.mesh.position.y = this.y!;
-            this.mesh.position.z = this.z!;
+        if (this.mesh != null && this.initialized) {
+            this.mesh.position.x = this.positionWorld!.x;
+            this.mesh.position.y = this.positionWorld!.y;
+            this.mesh.position.z = this.positionWorld!.z;
         }
     }
 
 
-    update(deltaTime: number) {
+    update(dT: number) {
         // Override in subclass
     }
 
 
     public checkCollision(other: ActiveEntity): boolean {
-        if (this.positionSet && other.positionSet) {
-            const aMinX = this.x! - this.width / 2;
-            const aMaxX = this.x! + this.width / 2;
-            const aMinY = this.y! - this.height / 2;
-            const aMaxY = this.y! + this.height / 2;
+        if (this.initialized && other.initialized) {
+            const aMinX = this.positionWorld!.x - this.width / 2;
+            const aMaxX = this.positionWorld!.x + this.width / 2;
+            const aMinY = this.positionWorld!.y - this.height / 2;
+            const aMaxY = this.positionWorld!.y + this.height / 2;
 
-            const bMinX = other.x! - other.width / 2;
-            const bMaxX = other.x! + other.width / 2;
-            const bMinY = other.y! - other.height / 2;
-            const bMaxY = other.y! + other.height / 2;
+            const bMinX = other.positionWorld!.x - other.width / 2;
+            const bMaxX = other.positionWorld!.x + other.width / 2;
+            const bMinY = other.positionWorld!.y - other.height / 2;
+            const bMaxY = other.positionWorld!.y + other.height / 2;
 
             return (
                 aMinX < bMaxX &&
