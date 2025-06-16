@@ -1,20 +1,18 @@
 // src/core/Entity.ts
 
 import * as THREE from 'three';
+import { Vec3 } from '../math/Vec3'
 
 export abstract class Entity {
-    protected x: number | null;
-    protected y: number | null;
-    protected z: number | null;
+    
+    protected positionWorld: Vec3 | null;
     protected positionSet: boolean;
 
     protected textureName: string | null;
     protected mesh: THREE.Mesh | null;
 
     public constructor(textureName: string | null = null) {
-        this.x = null;
-        this.y = null;
-        this.z = null;
+        this.positionWorld = null;
         this.positionSet = false;
 
         this.textureName = textureName;
@@ -35,11 +33,13 @@ export abstract class Entity {
     }
 
     public setPosition(x: number, y: number, z: number) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.positionWorld.x = x;
+        this.positionWorld.y = y;
+        this.positionWorld.z = z;
         this.positionSet = true;
     }
+
+
 
     protected abstract createTHREEMesh(): Promise<THREE.Mesh>;
 

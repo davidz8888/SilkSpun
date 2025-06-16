@@ -20,6 +20,10 @@ export interface InfiniteLight {
 
 export const pointLights: PointLight[] = [];
 
+export function addPointLight(pointLight: PointLight) {
+    pointLights.push(pointLight);
+}
+
 pointLights.push({
     positionWorld: new Vec3(50.0, 50.0, 15.0),
     color: new Vec3(1.0, 1.0, 1.0),
