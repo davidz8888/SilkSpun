@@ -29,19 +29,19 @@ pointLights.push({
 
 
 export const skyLight: SkyLight = {
-    color: new Vec3(0.05, 0.15, 0.2),
+    color: new Vec3(0.0, 0.0, 0.0),
     shadowDistance: 20.0
 };
 
 
 export const sunLight: InfiniteLight = {
     direction: new Vec3(0.0, 1.0, 1.0),
-    color: new Vec3(1.0, 1.0, 0.7),
+    color: new Vec3(0.0, 0.0, 10.0),
     shadowDistance: 30.0
 }
 
 export const moonLight: InfiniteLight = {
-    direction: new Vec3(0.0, 0.0, .0),
+    direction: new Vec3(0.0, 0.0, 0.0),
     color: new Vec3(1.0, 1.0, 0.7),
     shadowDistance: 30.0
 }
@@ -94,11 +94,11 @@ function updateSky(timeOfDay: number): void{
     } else {
         skyLight.color = nightColor;
     }
+
 }
 
 
 function updateSun(timeOfDay: number): void{
-
 
     const morningColor = new Vec3(1.0, 0.0, 0.0);
     const noonColor = new Vec3(1.0, 0.9, 0.8);

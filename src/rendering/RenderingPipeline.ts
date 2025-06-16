@@ -21,6 +21,10 @@ export class RenderingPipeline {
     private renderer: THREE.WebGLRenderer;
     private camera: THREE.Camera;
 
+    private pointlightsTHREE: any[];
+    private infiniteLightsTHREE: any[];
+    private skyLightTHREE: any;
+
     // Materials
     private lightingMaterial: THREE.ShaderMaterial;
 
@@ -72,16 +76,11 @@ export class RenderingPipeline {
         this.compositeScene = new THREE.Scene();
         this.screenScene = new THREE.Scene();
 
-        // const pointlightsTHREE: PointLightTHREE[] = RenderingPipeline.convertPointLights(pointLights);
+        this.pointlightsTHREE = RenderingPipeline.convertPointLights(pointLights);
+        RenderingPipeline.padPointLights(this.pointlightsTHREE);
 
-        const pointLightNew: PointLightTHREE = {
-            positionWorld: new THREE.Vector3(0),
-            color: new THREE.Vector3(1),
-            falloff: 10,
-            radius: 10
-        }
-
-        const debugPointLights: PointLightTHREE[] = [pointLightNew];
+        this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
+        RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
 
         const lightingUniforms = {
             screenWidth: { value: sceneWidth },
@@ -89,10 +88,11 @@ export class RenderingPipeline {
             albedoMap: { value: this.gBuffer.textures[0] },
             normalMap: { value: this.gBuffer.textures[1] },
             heightMap: { value: this.gBuffer.textures[2] },
-            pointLights: { value: debugPointLights },
-            numPointLightsInUse: { value: debugPointLights.length },
+            pointLights: { value: this.pointlightsTHREE },
+            numPointLightsInUse: { value: pointLights.length },
             skyLight: { value: RenderingPipeline.convertSkyLight(skyLight) },
-            infiniteLights: { value: RenderingPipeline.convertInfiniteLights(infiniteLights) }
+            infiniteLights: { value: this.infiniteLightsTHREE },
+            numInfiniteLightsInUse: { value: infiniteLights.length }
         };
 
         this.lightingMaterial = new THREE.ShaderMaterial({
@@ -152,10 +152,15 @@ export class RenderingPipeline {
 
         // Lighting Pass
         // Update light uniforms explicitly each frame
-        // this.lightingMaterial.uniforms.pointLights.value = ;
-        // this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
-        // this.lightingMaterial.uniforms.skyLight.value = RenderingPipeline.convertSkyLight(skyLight);
-        // this.lightingMaterial.uniforms.infiniteLights.value = RenderingPipeline.convertInfiniteLights(infiniteLights);
+        this.pointlightsTHREE = RenderingPipeline.convertPointLights(pointLights);
+        RenderingPipeline.padPointLights(this.pointlightsTHREE);
+        this.lightingMaterial.uniforms.pointLights.value = this.pointlightsTHREE;
+
+        this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
+        RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
+        this.lightingMaterial.uniforms.infiniteLights.value = this.infiniteLightsTHREE;
+
+        
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
@@ -224,7 +229,7 @@ export class RenderingPipeline {
 
 
     
-    private static convertPointLights(pointlights: PointLight[]): PointLightTHREE[] {
+    private static convertPointLights(pointlights: PointLight[]): any[] {
         return pointlights.map(pointLight => ({
             positionWorld: RenderingPipeline.convertToThreeVec3(pointLight.positionWorld),
             color: RenderingPipeline.convertToThreeVec3(pointLight.color),
@@ -233,7 +238,22 @@ export class RenderingPipeline {
         }));
     }
 
-    private static convertInfiniteLights(infiniteLights: InfiniteLight[]): InfiniteLightTHREE[] {
+    private static padPointLights(pointlights: any[]) {
+        const defaultLight = {
+            positionWorld: new THREE.Vector3(0, 0, 0),
+            color: new THREE.Vector3(0, 0, 0),
+            falloff: 1,
+            radius: 0
+        };
+    
+        const MAX_POINTLIGHTS = 100
+
+        while (pointlights.length < MAX_POINTLIGHTS) {
+            pointlights.push(defaultLight);
+        }
+    }
+
+    private static convertInfiniteLights(infiniteLights: InfiniteLight[]): any[] {
         return infiniteLights.map(infiniteLight => ({
             direction: RenderingPipeline.convertToThreeVec3(infiniteLight.direction),
             color: RenderingPipeline.convertToThreeVec3(infiniteLight.color),
@@ -241,7 +261,21 @@ export class RenderingPipeline {
         }));
     }
 
-    private static convertSkyLight(skyLight: SkyLight): SkyLightTHREE {
+    private static padInfiniteLights(infiniteLights: any[]) {
+        const defaultLight = {
+            direction: new THREE.Vector3(0, 0, 0),
+            color: new THREE.Vector3(0, 0, 0),
+            shadowDistance: 0
+        };
+    
+        const MAX_INFINITELIGHTS = 10
+
+        while (infiniteLights.length < MAX_INFINITELIGHTS) {
+            infiniteLights.push(defaultLight);
+        }
+    }
+
+    private static convertSkyLight(skyLight: SkyLight): any {
         return {
             color: RenderingPipeline.convertToThreeVec3(skyLight.color),
             shadowDistance: skyLight.shadowDistance
@@ -272,21 +306,3 @@ export class RenderingPipeline {
 
 }
 
-
-interface PointLightTHREE {
-    positionWorld: THREE.Vector3,
-    color: THREE.Vector3,
-    falloff: number,
-    radius: number;
-}
-
-interface InfiniteLightTHREE {
-    direction: THREE.Vector3,
-    color: THREE.Vector3,
-    shadowDistance: number
-}
-
-interface SkyLightTHREE {
-    color: THREE.Vector3,
-    shadowDistance: number
-}

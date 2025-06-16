@@ -14,7 +14,7 @@ uniform sampler2D heightMap;
 
 out vec4 fragColor;
 
-const float HEIGHT_SCALING = 255.0;
+const float HEIGHT_SCALING = 2.0;
 
 struct PointLight {
     vec3 positionWorld;
@@ -24,7 +24,7 @@ struct PointLight {
 };
 #define MAX_POINTLIGHTS 100
 uniform PointLight pointLights[MAX_POINTLIGHTS];
-uniform int num_pointLightsInUse;
+uniform int numPointLightsInUse;
 
 struct SkyLight {
     vec3 color;
@@ -47,8 +47,10 @@ struct InfiniteLight {
     vec3 color;
     float shadowDistance;
 };
-#define NUM_INFINITELIGHTS 2
+
+#define NUM_INFINITELIGHTS 10
 uniform InfiniteLight infiniteLights[NUM_INFINITELIGHTS];
+uniform int numInfiniteLightsInUse;
 
 const vec3 ambientLight = vec3(0.05, 0.05, 0.03);
 
@@ -78,7 +80,7 @@ vec3 pointLighting() {
 
     vec3 totalLight = vec3(0);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < numPointLightsInUse; i++) {
 
         vec3 fragPosition = vec3(v_positionWorld.xy, getZ(v_uv));
 
@@ -168,7 +170,7 @@ vec3 infiniteLighting() {
 
     vec3 totalLight = vec3(0);
 
-    for (int i = 0; i < NUM_INFINITELIGHTS; i++) {
+    for (int i = 0; i < numInfiniteLightsInUse; i++) {
 
         InfiniteLight light = infiniteLights[i];
         vec3 fragPosition = vec3(v_positionWorld.xy, getZ(v_uv));
@@ -202,7 +204,6 @@ vec3 infiniteLighting() {
     }
 
     return totalLight;
-    // return vec3(1);
 }
 
 vec3 ambientLighting() {
