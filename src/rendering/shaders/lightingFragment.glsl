@@ -218,6 +218,8 @@ void main() {
     // vec3 absorbedLight = clamp(infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
     vec4 albedo = texture(albedoMap, v_uv);
 
-    fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
+    // fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
+    fragColor = vec4(albedo.rgb, 1);
+
     // fragColor = vec4(1);
 }

@@ -21,6 +21,7 @@ async function main() {
     gameWorld.loadScene(new TestScene());
 
     const renderingPipeline = new RenderingPipeline(sceneWidth, sceneHeight);
+    console.log(gameWorld.getAllEntities());
     renderingPipeline.addEntities(gameWorld.getAllEntities());
 
 

@@ -176,8 +176,11 @@ export class RenderingPipeline {
 
     public addEntities(entities: Entity | Entity[]) {
 
+        console.log('is it here');
+
         if (Array.isArray(entities)) {
             entities.forEach(entity => {
+                console.log('yip');
                 this.addEntity(entity);
             });
 
@@ -199,6 +202,8 @@ export class RenderingPipeline {
     }
 
     private async addEntity(entity: Entity) {
+
+        console.log('geometry added');
 
         if (entity instanceof ForegroundEntity) {
             this.geometryScene.add(entity.getMesh()!);
