@@ -16,9 +16,9 @@ export class Layer {
         this.zValue = zValue;
     }
 
-    public async addEntity(entity: Entity, x: number, y: number) {
+    public addEntity(entity: Entity, x: number, y: number) {
 
-        await entity.initialize(x, y, this.zValue);
+        entity.setPosition(x, y, this.zValue);
         this.entities.push(entity);
 
         if (entity instanceof ActiveEntity) {
@@ -58,7 +58,9 @@ export class Layer {
     }
 
     public update(deltaTime: number) {
+
         for (const entity of this.entities) {
+
             if (entity instanceof ActiveEntity) {
                 entity.update(deltaTime);
             }

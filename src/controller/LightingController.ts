@@ -24,12 +24,12 @@ export function addPointLight(pointLight: PointLight) {
     pointLights.push(pointLight);
 }
 
-pointLights.push({
-    positionWorld: new Vec3(50.0, 50.0, 15.0),
-    color: new Vec3(1.0, 1.0, 1.0),
-    falloff: 0.2,
-    radius: 0.0
-});
+// pointLights.push({
+//     positionWorld: new Vec3(0.0, 0.0, -1.0),
+//     color: new Vec3(1.0, 1.0, 1.0),
+//     falloff: 0.0,
+//     radius: 50
+// });
 
 
 export const skyLight: SkyLight = {
@@ -39,14 +39,14 @@ export const skyLight: SkyLight = {
 
 
 export const sunLight: InfiniteLight = {
-    direction: new Vec3(0.0, 1.0, 1.0),
-    color: new Vec3(0.0, 0.0, 10.0),
+    direction: new Vec3(0.0, 0.0, 0.0),
+    color: new Vec3(0.0, 0.0, 0.0),
     shadowDistance: 30.0
 }
 
 export const moonLight: InfiniteLight = {
     direction: new Vec3(0.0, 0.0, 0.0),
-    color: new Vec3(1.0, 1.0, 0.7),
+    color: new Vec3(0.0, 0.0, 0.0),
     shadowDistance: 30.0
 }
 

@@ -24,10 +24,16 @@ async function main() {
     console.log(gameWorld.getAllEntities());
     renderingPipeline.addEntities(gameWorld.getAllEntities());
 
+    let lastTime = performance.now(); // 👈 Track previous timestamp
 
-    function gameLoop(time: number) {
+    function gameLoop(currentTime: number) {
         stats.begin();
 
+        const deltaTime = (currentTime - lastTime) / 1000; // 👈 Convert ms to seconds
+        lastTime = currentTime;
+
+        gameWorld.update(deltaTime);
+        gameWorld.syncMeshState();
         renderingPipeline.render();
 
         stats.end();

@@ -10,7 +10,7 @@ import { Vec3 } from '../math/Vec3';
 
 export class MoveableLight extends ActiveEntity {
 
-  private moveSpeed: number = 50;
+  private moveSpeed: number = 1;
   private input: InputController | null = null;
   private pointLight: PointLight | null = null;
 
@@ -20,27 +20,42 @@ export class MoveableLight extends ActiveEntity {
 
   }
 
+  public override initMesh() {
+    this.createPointLight(new Vec3(1.0, 1.0, 1.0), 0.0, 100);
+    return super.initMesh();
+  }
+
   public setInputController(controller: InputController) {
     this.input = controller;
   }
 
 
-  public override async initialize(x: number, y: number, z: number) {
+  public override setPosition(x: number, y: number, z: number): void {
+    super.setPosition(x, y, z);
+    this.setPointLightPosition(new Vec3(x, y, z));
+  }
+
+  private createPointLight(color: Vec3, falloff: number, radius: number) {
 
     this.pointLight = {
-      positionWorld: new Vec3(x, y, z),
-      color: new Vec3(1.0, 0.9, 0.6),
-      falloff: 1.0,
-      radius: 150.0,
-    };
-
+      positionWorld: this.positionWorld!,
+      color: color,
+      falloff: falloff,
+      radius: radius,
+    }
     addPointLight(this.pointLight);
   }
 
 
-  public update(dt: number): void {
+  private setPointLightPosition(positionWorld: Vec3) {
+    if (this.pointLight) {
+      this.pointLight.positionWorld = positionWorld;
+    }
+  }
 
-    if (!this.initialized) return;
+  public override update(deltaTime: number): void {
+
+    if (!this.positionWorld) return;
     if (!this.input) return;
 
     const moveVec = new Vec3();
@@ -53,6 +68,7 @@ export class MoveableLight extends ActiveEntity {
 
     this.positionWorld!.add(moveVec);
     this.pointLight!.positionWorld.add(moveVec);
+
   }
 
 }

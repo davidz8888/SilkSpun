@@ -10,7 +10,7 @@ export abstract class ActiveEntity extends ForegroundEntity{
     public height: number = 1;
 
     public syncMeshState() {
-        if (this.mesh != null && this.initialized) {
+        if (this.mesh != null && this.positionWorld) {
             this.mesh.position.x = this.positionWorld!.x;
             this.mesh.position.y = this.positionWorld!.y;
             this.mesh.position.z = this.positionWorld!.z;
@@ -24,7 +24,7 @@ export abstract class ActiveEntity extends ForegroundEntity{
 
 
     public checkCollision(other: ActiveEntity): boolean {
-        if (this.initialized && other.initialized) {
+        if (this.positionWorld && other.positionWorld) {
             const aMinX = this.positionWorld!.x - this.width / 2;
             const aMaxX = this.positionWorld!.x + this.width / 2;
             const aMinY = this.positionWorld!.y - this.height / 2;

@@ -14,7 +14,7 @@ uniform sampler2D heightMap;
 
 out vec4 fragColor;
 
-const float HEIGHT_SCALING = 2.0;
+const float HEIGHT_SCALING = 0.0;
 
 struct PointLight {
     vec3 positionWorld;
@@ -55,9 +55,9 @@ uniform int numInfiniteLightsInUse;
 const vec3 ambientLight = vec3(0.05, 0.05, 0.03);
 
 vec3 lightWithDistance(PointLight light, float distance) {
-    return light.color * ((light.radius - distance) / ((light.falloff * distance * distance) + light.radius));
-
-}
+    // return light.color * ((light.radius - distance) / ((light.falloff * distance * distance) + light.radius));
+    return vec3(1.0);
+}   
 
 bool locationEquality(vec3 posA, vec3 posB, float epsilon) {
     return length(posA - posB) < epsilon;
@@ -107,16 +107,15 @@ vec3 pointLighting() {
             
             rayPosition += (stepSize * rayStep);
             
-            float rayTop = rayPosition.z + 1.0;
             float currZ = getZ(toUV(rayPosition));
-            rayFactor = min(max(rayTop - currZ, 0.0), rayFactor); 
+            rayFactor = (rayPosition.z < currZ) ? 0.0 : 1.0; 
             if (rayFactor == 0.0) break;
 
         }
 
         if (rayFactor == 0.0) continue;
         
-        totalLight += (normalFactor * rayFactor * lightWithDistance(light, length(displacement)));
+        totalLight += (1.0 * 1.0 * lightWithDistance(light, length(displacement)));
 
     }
 
@@ -151,9 +150,7 @@ vec3 skyLighting() {
             
             rayPosition += (stepSize * rayStep);
             
-            // float rayTop = rayPosition.z + 1.0;
             float currZ = getZ(toUV(rayPosition));
-            // rayFactor = min(max(rayTop - currZ, 0.0), rayFactor);
 
             rayFactor = (rayPosition.z < currZ) ? 0.0 : 1.0; 
             if (rayFactor == 0.0) break;
@@ -191,9 +188,7 @@ vec3 infiniteLighting() {
             
             rayPosition += (stepSize * rayStep);
             
-            // float rayTop = rayPosition.z + 1.0;
             float currZ = getZ(toUV(rayPosition));
-            // rayFactor = min(max(rayTop - currZ, 0.0), rayFactor);
 
             rayFactor = (rayPosition.z < currZ) ? 0.0 : 1.0; 
             if (rayFactor == 0.0) break;
@@ -214,12 +209,11 @@ vec3 ambientLighting() {
 void main() {
 
     vec3 absorbedLight = clamp(ambientLighting() + infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
+    // vec3 absorbedLight = pointLighting();
 
-    // vec3 absorbedLight = clamp(infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
+
     vec4 albedo = texture(albedoMap, v_uv);
 
-    // fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
-    fragColor = vec4(albedo.rgb, 1);
-
-    // fragColor = vec4(1);
+    fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
+    fragColor = vec4(texture(heightMap, v_uv));
 }

@@ -59,7 +59,7 @@ export class RenderingPipeline {
             this.sceneHeight / 2,
             -this.sceneHeight / 2,
             0,
-            1000
+            100
         );
 
 
@@ -104,7 +104,6 @@ export class RenderingPipeline {
 
         const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.lightingMaterial);
         this.lightingScene.add(lightingQuad);
-        lightingQuad.position.set(0, 0, -1.0);
 
         // Composite Pass
         const compositeUniforms = {
@@ -139,8 +138,7 @@ export class RenderingPipeline {
 
     public render() {
 
-        // debugDayNight();
-        updateDayNight();
+        // updateDayNight();
 
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);
@@ -152,6 +150,7 @@ export class RenderingPipeline {
 
         // Lighting Pass
         // Update light uniforms explicitly each frame
+
         this.pointlightsTHREE = RenderingPipeline.convertPointLights(pointLights);
         RenderingPipeline.padPointLights(this.pointlightsTHREE);
         this.lightingMaterial.uniforms.pointLights.value = this.pointlightsTHREE;
@@ -176,11 +175,8 @@ export class RenderingPipeline {
 
     public addEntities(entities: Entity | Entity[]) {
 
-        console.log('is it here');
-
         if (Array.isArray(entities)) {
             entities.forEach(entity => {
-                console.log('yip');
                 this.addEntity(entity);
             });
 
@@ -203,7 +199,9 @@ export class RenderingPipeline {
 
     private async addEntity(entity: Entity) {
 
-        console.log('geometry added');
+        if (entity.getMesh() == null) {
+            await entity.initMesh();
+        }
 
         if (entity instanceof ForegroundEntity) {
             this.geometryScene.add(entity.getMesh()!);
