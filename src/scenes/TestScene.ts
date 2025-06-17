@@ -23,7 +23,7 @@ export class TestScene extends Scene {
 
         const inputController: InputController = new InputController();
 
-        this.moveableLight = new MoveableLight('point_light');
+        this.moveableLight = new MoveableLight('transparent');
         this.moveableLight.setInputController(inputController);
         this.lightLayer = new Layer('light_layer', -10);
         this.lightLayer.addEntity(this.moveableLight, 0, 0);
@@ -32,15 +32,14 @@ export class TestScene extends Scene {
 
 
         this.testFloor = new PassiveEntity('test_floor');
-        this.floorLayer = new Layer('floor_layer', -100);
+        this.floorLayer = new Layer('floor_layer', -40);
         this.floorLayer.addEntity(this.testFloor, 0, 0);
 
         this.addLayer(this.floorLayer);
 
         this.testWall = new PassiveEntity('test_wall');
-        this.wallLayer = new Layer('wall_layer', 100);
+        this.wallLayer = new Layer('wall_layer', -40);
         this.wallLayer.addEntity(this.testWall, 0, 0);
-        console.log(this.testWall.getPosition());
 
         this.addLayer(this.wallLayer);
     }

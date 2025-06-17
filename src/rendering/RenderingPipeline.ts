@@ -138,7 +138,7 @@ export class RenderingPipeline {
 
     public render() {
 
-        // updateDayNight();
+        updateDayNight();
 
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);
@@ -154,10 +154,12 @@ export class RenderingPipeline {
         this.pointlightsTHREE = RenderingPipeline.convertPointLights(pointLights);
         RenderingPipeline.padPointLights(this.pointlightsTHREE);
         this.lightingMaterial.uniforms.pointLights.value = this.pointlightsTHREE;
+        this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
 
         this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
         RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
         this.lightingMaterial.uniforms.infiniteLights.value = this.infiniteLightsTHREE;
+        this.lightingMaterial.uniforms.numInfiniteLightsInUse.value = pointLights.length;
 
         
         this.renderer.setRenderTarget(this.lightingTarget);
@@ -205,6 +207,7 @@ export class RenderingPipeline {
 
         if (entity instanceof ForegroundEntity) {
             this.geometryScene.add(entity.getMesh()!);
+            console.log(entity.getMesh()!.position)
         } else if (entity instanceof BackgroundEntity) {
             this.backgroundScene.add(entity.getMesh()!);
         }
@@ -221,13 +224,8 @@ export class RenderingPipeline {
             }
         }
     }
-    
-    public addLight() {
-
-    }
 
 
-    
     private static convertPointLights(pointlights: PointLight[]): any[] {
         return pointlights.map(pointLight => ({
             positionWorld: RenderingPipeline.convertToThreeVec3(pointLight.positionWorld),

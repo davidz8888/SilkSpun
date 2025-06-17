@@ -55,9 +55,12 @@ uniform int numInfiniteLightsInUse;
 const vec3 ambientLight = vec3(0.05, 0.05, 0.03);
 
 vec3 lightWithDistance(PointLight light, float distance) {
-    // return light.color * ((light.radius - distance) / ((light.falloff * distance * distance) + light.radius));
-    return vec3(1.0);
+    return light.color * ((light.radius - distance) / ((light.falloff * distance * distance) + light.radius));
 }   
+
+vec3 debugLight(PointLight light, float distance) {
+    return (light.radius > distance) ? vec3(1.0) : vec3(0.0);
+}
 
 bool locationEquality(vec3 posA, vec3 posB, float epsilon) {
     return length(posA - posB) < epsilon;
@@ -113,9 +116,11 @@ vec3 pointLighting() {
 
         }
 
-        if (rayFactor == 0.0) continue;
+        // if (rayFactor == 0.0) continue;
         
-        totalLight += (1.0 * 1.0 * lightWithDistance(light, length(displacement)));
+        // totalLight += (normalFactor * rayFactor * debugLight(light, length(displacement)));
+        totalLight += (normalFactor * lightWithDistance(light, length(displacement)));
+
 
     }
 
@@ -209,11 +214,8 @@ vec3 ambientLighting() {
 void main() {
 
     vec3 absorbedLight = clamp(ambientLighting() + infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
-    // vec3 absorbedLight = pointLighting();
-
 
     vec4 albedo = texture(albedoMap, v_uv);
 
     fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
-    fragColor = vec4(texture(heightMap, v_uv));
 }

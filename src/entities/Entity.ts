@@ -22,6 +22,7 @@ export abstract class Entity {
 
     public async initMesh() {
         this.mesh = await this.createTHREEMesh();
+        this.mesh.position.set(this.positionWorld!.x, this.positionWorld!.y, this.positionWorld!.z);
     }
 
     public getMesh(): THREE.Mesh | null{

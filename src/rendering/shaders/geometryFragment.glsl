@@ -22,5 +22,5 @@ void main() {
 
     fragColor0 = albedo;  // Albedo to the first render target
     fragColor1 = normal;  // Normal to the second render target (encoded)
-    fragColor2 = vec4(gl_FragCoord.z / -100.0, height, 0.0, 1.0);  // Depth/Height to the third render target
+    fragColor2 = vec4(v_positionWorld.z / -100.0, height, 0.0, 1.0);  // Depth/Height to the third render target
 }
