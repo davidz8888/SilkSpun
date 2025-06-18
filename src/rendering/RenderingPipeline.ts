@@ -138,7 +138,9 @@ export class RenderingPipeline {
 
     public render() {
 
-        updateDayNight();
+        // updateDayNight();
+
+        console.log(pointLights[0].positionWorld);
 
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);

@@ -137,40 +137,43 @@ vec3 pointLighting() {
             float rayTraversalDistance = length(displacement.xy);
             float rayStepDistance = stepSize * length(rayStep.xy);
 
-            for (float k = 0.0; k < rayTraversalDistance; k += rayStepDistance) {
+            // for (float k = 0.0; k < rayTraversalDistance; k += rayStepDistance) {
                 
-                rayPosition += (stepSize * rayStep);
+            //     rayPosition += (stepSize * rayStep);
                 
-                float currZ = getZ(toUV(rayPosition));
-                rayFactor = (rayPosition.z < currZ) ? 0.0 : rayStrength; 
-                if (rayFactor == 0.0) break;
-
-            }
-
-            // float stepX = displacement.x > 0.0 ? 1.0 : -1.0;
-            // float stepY = displacement.y > 0.0 ? 1.0 : -1.0;
-
-            // float tXStep = (1.0 / displacement.x);
-            // float tYStep = (1.0 / displacement.y);
-
-            // float tXCurr = displacement.x != 0.0 ? 0.0 : 1.0;
-            // float tYCurr = displacement.y != 0.0 ? 0.0 : 1.0;
-
-
-            // while (tXCurr < 1.0 || tYCurr < 1.0) {
-
-            //     if (tXCurr < tYCurr) {
-            //         tXCurr += tXStep;
-            //         rayPosition.x += stepX;
-            //     } else {
-            //         tYCurr += tYStep;
-            //         rayPosition.y += stepY;
-            //     }
             //     float currZ = getZ(toUV(rayPosition));
             //     rayFactor = (rayPosition.z < currZ) ? 0.0 : rayStrength; 
             //     if (rayFactor == 0.0) break;
 
             // }
+
+            float stepX = displacement.x > 0.0 ? 1.0 : -1.0;
+            float stepY = displacement.y > 0.0 ? 1.0 : -1.0;
+            
+            float tXStep = displacement.x != 0.0 ? abs(1.0 / displacement.x) : 1e10;
+            float tYStep = displacement.y != 0.0 ? abs(1.0 / displacement.y) : 1e10;
+
+            float tXCurr = displacement.x != 0.0 ? 0.0 : 1.0;
+            float tYCurr = displacement.y != 0.0 ? 0.0 : 1.0;
+
+            float pathLength = length(displacement.xy);
+
+
+            while (tXCurr < 1.0 || tYCurr < 1.0) {
+
+                if (tXCurr < tYCurr) {
+                    tXCurr += tXStep;
+                    rayPosition.x += stepX;
+                } else {
+                    tYCurr += tYStep;
+                    rayPosition.y += stepY;
+                }
+                float currZ = getZ(toUV(rayPosition));
+                float currRayLength = length(rayPosition.xy - fragPosition.xy);
+                rayFactor = (((displacement.z * currRayLength / pathLength) + fragPosition.z) < currZ) ? 0.0 : rayStrength; 
+                if (rayFactor == 0.0) break;
+
+            }
 
 
             if (rayFactor == 0.0) continue;

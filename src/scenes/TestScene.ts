@@ -25,7 +25,7 @@ export class TestScene extends Scene {
 
         this.moveableLight = new MoveableLight('transparent');
         this.moveableLight.setInputController(inputController);
-        this.lightLayer = new Layer('light_layer', -30);
+        this.lightLayer = new Layer('light_layer', -10);
         this.lightLayer.addEntity(this.moveableLight, 0, 0);
 
         this.addLayer(this.lightLayer);
