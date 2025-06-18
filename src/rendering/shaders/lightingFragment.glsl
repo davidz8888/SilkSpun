@@ -105,83 +105,70 @@ float getZ(vec2 uv) {
 
 
 vec3 pointLighting() {
-
+    vec3 totalLight = vec3(0.0);
     float shadowSoftness = 1.5;
 
-    vec3 totalLight = vec3(0);
-
     for (int i = 0; i < numPointLightsInUse; i++) {
-
-        float rayStrength = 1.0 / float(NUM_RAYS);
+        PointLight light = pointLights[i];
 
         for (int j = 0; j < NUM_RAYS; j++) {
+            vec3 fragPos = vec3(v_positionWorld.xy, getZ(v_uv));
+            vec3 offset = rayOffsets[j] * shadowSoftness;
+            vec3 lightPos = light.positionWorld + offset;
+            vec3 delta = lightPos - fragPos;
 
-            vec3 fragPosition = vec3(v_positionWorld.xy, getZ(v_uv));
+            if (length(delta) > light.radius) continue;
 
-            PointLight light = pointLights[i];
-
-            vec3 displacement = light.positionWorld - fragPosition + (rayOffsets[j] * shadowSoftness);
-            vec3 rayStep = toUnitCube(displacement);
-            float stepSize = 0.01;
-            
             vec3 normal = normalize(texture(normalMap, v_uv).rgb * 2.0 - 1.0);
-            float normalFactor = max((dot(normal, normalize(displacement))), 0.0);
+            float normalFactor = max(dot(normal, normalize(delta)), 0.0);
             if (normalFactor == 0.0) continue;
 
-            float distanceFactor = step(length(displacement) - light.radius, 0.0);
-            if (distanceFactor == 0.0) continue;
-
-            vec3 rayPosition = fragPosition;
-            float rayFactor = rayStrength;
-
-            float rayTraversalDistance = length(displacement.xy);
-            float rayStepDistance = stepSize * length(rayStep.xy);
-
-            // for (float k = 0.0; k < rayTraversalDistance; k += rayStepDistance) {
-                
-            //     rayPosition += (stepSize * rayStep);
-                
-            //     float currZ = getZ(toUV(rayPosition));
-            //     rayFactor = (rayPosition.z < currZ) ? 0.0 : rayStrength; 
-            //     if (rayFactor == 0.0) break;
-
-            // }
-
-            float stepX = displacement.x > 0.0 ? 1.0 : -1.0;
-            float stepY = displacement.y > 0.0 ? 1.0 : -1.0;
+            // DDA Setup
+            vec2 dir = delta.xy;
+            vec2 step = sign(dir);
+            vec2 tDelta = abs(vec2(1.0) / dir);
             
-            float tXStep = displacement.x != 0.0 ? abs(1.0 / displacement.x) : 1e10;
-            float tYStep = displacement.y != 0.0 ? abs(1.0 / displacement.y) : 1e10;
+            vec2 rayCell = floor(fragPos.xy);
+            vec2 nextBoundary = rayCell + step * 0.5 + 0.5 * step; // center of next voxel
+            vec2 tMax = abs((nextBoundary - fragPos.xy) / dir);
 
-            float tXCurr = displacement.x != 0.0 ? 0.0 : 1.0;
-            float tYCurr = displacement.y != 0.0 ? 0.0 : 1.0;
+            float totalDist = length(dir);
+            float traveled = 0.0;
+            float rayZStart = fragPos.z;
+            float rayZEnd = lightPos.z;
 
-            float pathLength = length(displacement.xy);
+            vec2 currentPos = fragPos.xy;
+            float rayFactor = 1.0;
 
+            while (traveled < totalDist) {
+                // Interpolated Z along the ray
+                float t = traveled / totalDist;
+                float rayZ = mix(rayZStart, rayZEnd, t);
+                float terrainZ = getZ(toUV(vec3(currentPos, 0.0)));
 
-            while (tXCurr < 1.0 || tYCurr < 1.0) {
-
-                if (tXCurr < tYCurr) {
-                    tXCurr += tXStep;
-                    rayPosition.x += stepX;
-                } else {
-                    tYCurr += tYStep;
-                    rayPosition.y += stepY;
+                if (rayZ < terrainZ) {
+                    rayFactor = 0.0;
+                    break;
                 }
-                float currZ = getZ(toUV(rayPosition));
-                float currRayLength = length(rayPosition.xy - fragPosition.xy);
-                rayFactor = (((displacement.z * currRayLength / pathLength) + fragPosition.z) < currZ) ? 0.0 : rayStrength; 
-                if (rayFactor == 0.0) break;
 
+                // Step DDA
+                if (tMax.x < tMax.y) {
+                    tMax.x += tDelta.x;
+                    currentPos.x += step.x;
+                } else {
+                    tMax.y += tDelta.y;
+                    currentPos.y += step.y;
+                }
+
+                traveled = length(currentPos - fragPos.xy);
             }
 
-
             if (rayFactor == 0.0) continue;
-            
-            totalLight += (normalFactor * rayFactor * lightWithDistance(light, length(displacement)));
-        
-        }
 
+            vec3 color = lightWithDistance(light, length(delta));
+            float rayWeight = 1.0 / float(NUM_RAYS);
+            totalLight += rayWeight * normalFactor * color;
+        }
     }
 
     return totalLight;
