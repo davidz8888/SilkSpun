@@ -140,8 +140,6 @@ export class RenderingPipeline {
 
         // updateDayNight();
 
-        console.log(pointLights[0].positionWorld);
-
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);
         this.renderer.render(this.backgroundScene, this.camera);
