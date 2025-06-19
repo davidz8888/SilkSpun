@@ -165,7 +165,7 @@ vec3 pointLighting() {
             // tTillNextBound.x = 1.0e5
             if (displacement.x  == 0.0) {
                 tStep.x = 1.0;
-                tTillNextBound.x = 1.0;
+                tTillNextBound.x = 10000.0;
             } else {
                 tStep.x = abs(1.0 / displacement.x);
                 tTillNextBound.x = abs((firstBound.x - fragPos.x) / displacement.x);
@@ -176,7 +176,7 @@ vec3 pointLighting() {
             // tTillNextBound.y = 0.1
             if (displacement.y == 0.0) {
                 tStep.y = 1.0;
-                tTillNextBound.y = 1.0;
+                tTillNextBound.y = 10000.0;
             } else {
                 tStep.y = abs(1.0 / displacement.y);
                 tTillNextBound.y = abs((firstBound.y - fragPos.y) / displacement.y);
@@ -186,8 +186,9 @@ vec3 pointLighting() {
 
             // t = 0.1
             float t = min(tTillNextBound.x, tTillNextBound.y);
+            int numCycle = 0;
 
-            vec3 debugColor = vec3(1.0, 1.0, 1.0);
+            vec3 debugColor = vec3(t);
             while (t < 1.0) {
 
                 if (t < 0.0) {
@@ -198,9 +199,9 @@ vec3 pointLighting() {
                 vec3 rayCurrPos = mix(fragPos, lightPos, t);
 
                 vec2 currStep;
-                debugColor.r -= 0.01;
-                debugColor.g -= 0.01;
-                debugColor.b -= 0.01;
+                // debugColor.r -= 0.01;
+                // debugColor.g -= 0.01;
+                // debugColor.b -= 0.01;
                 // Step DDA
                 if (tTillNextBound.x < tTillNextBound.y) {
                     tTillNextBound.x += tStep.x;
