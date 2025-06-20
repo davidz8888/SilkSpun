@@ -21,7 +21,7 @@ export class TestScene extends Scene {
 
         this.addLayer(lightLayer);
 
-        const testFloor = new PassiveEntity('test_background');
+        const testFloor = new PassiveEntity('test_materials');
         const floorLayer = new Layer('floor_layer', -40);
         floorLayer.addEntity(testFloor, 0, 0);
 

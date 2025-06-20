@@ -241,7 +241,7 @@ vec3 pointLighting() {
                 vec3 rayCurrPos = mix(fragPos, lightPos, t);
 
                 // Check exiting current cell
-                if (rayOcclusionCheck(rayCurrPos, currCell)) {
+                if (debugOcclusionCheck(rayCurrPos, currCell)) {
                     rayFactor = 0.0;
                     break;
                 }
@@ -249,7 +249,7 @@ vec3 pointLighting() {
                 currCell += currStep;
 
                 // Check entering next cell
-                if (rayOcclusionCheck(rayCurrPos, currCell)) {
+                if (debugOcclusionCheck(rayCurrPos, currCell)) {
                     rayFactor = 0.0;
                     break;
                 }
