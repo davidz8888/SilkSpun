@@ -112,10 +112,11 @@ float zOnPlane(vec2 xy, vec3 pointOnPlane, vec3 planeNormal) {
 
 bool rayOcclusionCheck(vec3 rayPos, vec2 terrainCell) {
 
-    vec2 terrainUV = toUV(vec3(terrainCell.x, terrainCell.y, 0.0));
+    vec2 terrainCellCenter = terrainCell += 0.5;
+    vec2 terrainUV = toUV(vec3(terrainCellCenter.x, terrainCellCenter.y, 0.0));
     float terrainHeight = getZ(terrainUV);
-    vec3 terrainNormal = texture(normalMap, terrainUV).xyz;
-    vec3 terrainSample = vec3(terrainCell.x, terrainCell.y, terrainHeight);
+    vec3 terrainNormal = normalize(texture(normalMap, terrainUV).rgb * 2.0 - 1.0);
+    vec3 terrainSample = vec3(terrainCellCenter.x, terrainCellCenter.y, terrainHeight);
 
     return (rayPos.z < zOnPlane(rayPos.xy, terrainSample, terrainNormal));
 }
@@ -155,82 +156,67 @@ vec3 pointLighting() {
             // step.x = 0
             // step.y = 1
             vec2 tStep;
-            vec2 tTillNextBound;
+            vec2 tCurrBound;
             vec2 currCell = fragPos.xy;
             vec2 firstBound = currCell + step;
 
         
             // displacement.x = 0
             // tStep.x = 1.0e5
-            // tTillNextBound.x = 1.0e5
+            // tCurrBound.x = 1.0e5
             if (displacement.x  == 0.0) {
                 tStep.x = 1.0;
-                tTillNextBound.x = 10000.0;
+                tCurrBound.x = 10000.0;
             } else {
                 tStep.x = abs(1.0 / displacement.x);
-                tTillNextBound.x = abs((firstBound.x - fragPos.x) / displacement.x);
+                tCurrBound.x = abs((firstBound.x - fragPos.x) / displacement.x);
             }
 
-            // displacement.y = 10
-            // tStep.y = 0.1
-            // tTillNextBound.y = 0.1
+            // displacement.y = 1.5
+            // tStep.y = 0.667
+            // tCurrBound.y = 0.667
             if (displacement.y == 0.0) {
                 tStep.y = 1.0;
-                tTillNextBound.y = 10000.0;
+                tCurrBound.y = 10000.0;
             } else {
                 tStep.y = abs(1.0 / displacement.y);
-                tTillNextBound.y = abs((firstBound.y - fragPos.y) / displacement.y);
+                tCurrBound.y = abs((firstBound.y - fragPos.y) / displacement.y);
             }
+
             
             float rayFactor = 1.0;
 
-            // t = 0.1
-            float t = min(tTillNextBound.x, tTillNextBound.y);
-            int numCycle = 0;
+            // t = varys with x
+            float t = 0.0;
 
-            vec3 debugColor = vec3(t);
+            float debugY = tStep.y;
+            float debugT = t;
+            vec2 currStep;
+
+            vec3 debugColor = vec3(0.0);
             while (t < 1.0) {
 
-                if (t < 0.0) {
-                    debugColor = vec3(1.0, 0.0, 0.0);
-                    break;
-                }
-                
-                vec3 rayCurrPos = mix(fragPos, lightPos, t);
 
-                vec2 currStep;
-                // debugColor.r -= 0.01;
-                // debugColor.g -= 0.01;
-                // debugColor.b -= 0.01;
                 // Step DDA
-                if (tTillNextBound.x < tTillNextBound.y) {
-                    tTillNextBound.x += tStep.x;
-                    t = tTillNextBound.x;
+                if (tCurrBound.x < tCurrBound.y) {
+                    t = tCurrBound.x;
+                    tCurrBound.x += tStep.x;
                     currStep = vec2(step.x, 0.0);
 
-
                 } else {
-                    tTillNextBound.y += tStep.y;
-                    t = tTillNextBound.y;
-                    // t = 0.2
-                    // t = 0.2
+
+                    t = tCurrBound.y;
+                    tCurrBound.y += tStep.y;
                     currStep = vec2(0.0, step.y);
-                    // currStep = (0.0, 1.0);
-
-                    // debugColor.g += 0.02;
-
                 }
 
-                // fragPos = (0, -10)
-                // lightPos = (0, 0)
-                // rayCurrPos = 0.9 fragPos + 0.1 lightPos
-                // rayCurrPos = (0, -9)
-                // currCell = (0, -10)
+                vec3 rayCurrPos = mix(fragPos, lightPos, t);
+
                 // Check exiting current cell
-                // if (debugOcclusionCheck(rayCurrPos, currCell)) {
-                //     rayFactor = 0.0;
-                //     break;
-                // }
+                if (debugOcclusionCheck(rayCurrPos, currCell)) {
+                    rayFactor = 0.0;
+                    break;
+                }
 
                 currCell += currStep;
 
@@ -243,11 +229,19 @@ vec3 pointLighting() {
 
             if (rayFactor == 0.0) continue;
 
-            // vec3 color = lightWithDistance(light, length(displacement));
-            // float rayWeight = 1.0 / float(NUM_RAYS);
-            // totalLight += rayWeight * normalFactor * color;
-            debugColor = max(debugColor, 0.0);
-            totalLight += debugColor;
+            vec3 color = lightWithDistance(light, length(displacement));
+            float rayWeight = 1.0 / float(NUM_RAYS);
+            totalLight += rayWeight * normalFactor * color;
+            // debugColor = max(debugColor, 0.0);
+
+            // if (abs(debugY) > 0.6 && abs(debugY) < 0.7) {
+            //     debugColor.b = 1.0;
+            // }
+
+            // if (debugT > 0.6 && debugT < 0.7) {
+            //     debugColor.r = 1.0;
+            // }
+            // totalLight += debugColor;
         }
     }
 
