@@ -3,6 +3,7 @@
 
 // G-buffer inputs
 in vec3 v_positionWorld;
+in vec3 v_viewPositionWorld;
 in vec2 v_uv;
 
 uniform float screenWidth;
@@ -11,6 +12,8 @@ uniform float screenHeight;
 uniform sampler2D albedoMap; 
 uniform sampler2D normalMap;
 uniform sampler2D heightMap;
+uniform sampler2D roughnessMap;
+uniform sampler2D metalnessMap;
 
 out vec4 fragColor;
 
@@ -130,6 +133,43 @@ bool debugOcclusionCheck(vec3 rayPos, vec2 terrainCell) {
 }
 
 
+const float PI = 3.14159265359;
+const float EPSILON = 0.001;
+// Helper function to compute the Fresnel-Schlick approximation
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+// Cook-Torrance BRDF
+vec3 cookTorranceBRDF(vec3 normal, vec3 viewDir, vec3 lightDir, float roughness, float metalness, vec3 F0) {
+    vec3 H = normalize(viewDir + lightDir);  // Half-vector
+    float HdotN = max(dot(H, normal), 0.0);
+    float NdotV = max(dot(normal, viewDir), 0.0);
+    float NdotL = max(dot(normal, lightDir), 0.0);
+
+    // Roughness term
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+
+    // Geometry function (Schlick-GGX)
+    float G1 = NdotV * (1.0 - alpha) + alpha;
+    float G2 = NdotL * (1.0 - alpha) + alpha;
+    float G = 1.0 / (G1 * G2);
+
+    // Fresnel-Schlick
+    vec3 F = fresnelSchlick(max(dot(H, viewDir), 0.0), F0);
+
+    // Cook-Torrance BRDF equation
+    float D = (alpha2 - 1.0) * HdotN * HdotN + 1.0;
+    D = alpha2 / (D * D * 3.14159265);
+
+    // Diffuse term (Lambertian)
+    vec3 diffuse = (1.0 - F) * (1.0 - metalness) * (1.0 / 3.14159265);
+
+    return (F * D * G) + diffuse;
+}
+
 // Ray march from fragment to light source
 vec3 pointLighting() {
     vec3 totalLight = vec3(0.0);
@@ -153,17 +193,11 @@ vec3 pointLighting() {
 
             // DDA Setup
             vec2 step = sign(displacement.xy);
-            // step.x = 0
-            // step.y = 1
             vec2 tStep;
             vec2 tCurrBound;
             vec2 currCell = fragPos.xy;
             vec2 firstBound = currCell + step;
 
-        
-            // displacement.x = 0
-            // tStep.x = 1.0e5
-            // tCurrBound.x = 1.0e5
             if (displacement.x  == 0.0) {
                 tStep.x = 1.0;
                 tCurrBound.x = 10000.0;
@@ -172,9 +206,6 @@ vec3 pointLighting() {
                 tCurrBound.x = abs((firstBound.x - fragPos.x) / displacement.x);
             }
 
-            // displacement.y = 1.5
-            // tStep.y = 0.667
-            // tCurrBound.y = 0.667
             if (displacement.y == 0.0) {
                 tStep.y = 1.0;
                 tCurrBound.y = 10000.0;
@@ -188,9 +219,6 @@ vec3 pointLighting() {
 
             // t = varys with x
             float t = 0.0;
-
-            float debugY = tStep.y;
-            float debugT = t;
             vec2 currStep;
 
             vec3 debugColor = vec3(0.0);
@@ -213,7 +241,7 @@ vec3 pointLighting() {
                 vec3 rayCurrPos = mix(fragPos, lightPos, t);
 
                 // Check exiting current cell
-                if (debugOcclusionCheck(rayCurrPos, currCell)) {
+                if (rayOcclusionCheck(rayCurrPos, currCell)) {
                     rayFactor = 0.0;
                     break;
                 }
@@ -221,7 +249,7 @@ vec3 pointLighting() {
                 currCell += currStep;
 
                 // Check entering next cell
-                if (debugOcclusionCheck(rayCurrPos, currCell)) {
+                if (rayOcclusionCheck(rayCurrPos, currCell)) {
                     rayFactor = 0.0;
                     break;
                 }
@@ -229,19 +257,27 @@ vec3 pointLighting() {
 
             if (rayFactor == 0.0) continue;
 
-            vec3 color = lightWithDistance(light, length(displacement));
+            vec3 viewDir = normalize(-v_positionWorld);
+            vec3 lightDir = normalize(displacement);
+
+
+            vec4 albedo = texture(albedoMap, v_uv);
+            float roughness = texture(roughnessMap, v_uv).r;
+            float metalness = texture(metalnessMap, v_uv).r;
+            vec3 F0 = mix(vec3(0.04), albedo.xyz, metalness);
+
+            // Compute PBR shading with Cook-Torrance BRDF
+            vec3 specularFactor = cookTorranceBRDF(normal, viewDir, lightDir, roughness, metalness, F0);
+
+            // Lambertian diffuse (not using full PBR reflection here)
+            vec3 diffuseFactor = albedo.xyz * max(dot(normal, lightDir), 0.0);
+
+            vec3 lightColor = lightWithDistance(light, length(displacement));
+
+
             float rayWeight = 1.0 / float(NUM_RAYS);
-            totalLight += rayWeight * normalFactor * color;
-            // debugColor = max(debugColor, 0.0);
+            totalLight += rayWeight * normalFactor * (specularFactor + diffuseFactor) * lightColor;
 
-            // if (abs(debugY) > 0.6 && abs(debugY) < 0.7) {
-            //     debugColor.b = 1.0;
-            // }
-
-            // if (debugT > 0.6 && debugT < 0.7) {
-            //     debugColor.r = 1.0;
-            // }
-            // totalLight += debugColor;
         }
     }
 
@@ -334,9 +370,11 @@ vec3 ambientLighting() {
 
 void main() {
 
-    vec3 absorbedLight = clamp(ambientLighting() + infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
+    // vec3 absorbedLight = clamp(ambientLighting() + infiniteLighting() + skyLighting() + pointLighting(), 0.0, 1.0);
 
-    vec4 albedo = texture(albedoMap, v_uv);
+    // vec4 albedo = texture(albedoMap, v_uv);
 
-    fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
+    // fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
+
+    fragColor = vec4(pointLighting(), 1.0);
 }
