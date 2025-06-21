@@ -21,7 +21,7 @@ export class MoveableLight extends ActiveEntity {
   }
 
   public override initMesh() {
-    this.createPointLight(new Vec3(1.0, 1.0, 1.0), 1.0, 200);
+    this.createPointLight(new Vec3(1.0, 1.0, 1.0), 0.0, 200);
     return super.initMesh();
   }
 

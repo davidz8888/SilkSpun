@@ -12,8 +12,8 @@ export abstract class ForegroundEntity extends Entity {
         const albedoMap: THREE.Texture = await ForegroundEntity.loadTexture(`${pathPrefix}${this.textureName}_albedo.png`);
         const normalMap: THREE.Texture = await ForegroundEntity.loadTexture(`${pathPrefix}${this.textureName}_normal.png`);
         const heightMap: THREE.Texture = await ForegroundEntity.loadTexture(`${pathPrefix}${this.textureName}_height.png`);
-        const roughessMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_roughness.png`);
-        const metalnessMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_metalness.png`);
+        const specularMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_specular.png`);
+        const shininessMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_shininess.png`);
 
         // Create the square that faces the camera
         const objectGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
@@ -22,8 +22,8 @@ export abstract class ForegroundEntity extends Entity {
                 albedoMap: { value: albedoMap },
                 normalMap: { value: normalMap },
                 heightMap: { value: heightMap },
-                roughnessMap: { value: roughessMap },
-                metalnessMap: { value: metalnessMap }
+                specularMap: { value: specularMap },
+                shininessMap: { value: shininessMap }
             },
             glslVersion: THREE.GLSL3,
             vertexShader: defualtVertexShader,

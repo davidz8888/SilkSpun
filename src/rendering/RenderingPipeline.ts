@@ -12,7 +12,7 @@ import { Vec3 } from '../math/Vec3';
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
-import { positionWorld } from 'three/tsl';
+import { positionWorld, roughness } from 'three/tsl';
 
 export class RenderingPipeline {
     private sceneWidth: number;
@@ -88,6 +88,8 @@ export class RenderingPipeline {
             albedoMap: { value: this.gBuffer.textures[0] },
             normalMap: { value: this.gBuffer.textures[1] },
             heightMap: { value: this.gBuffer.textures[2] },
+            specularMap: { value: this.gBuffer.textures[3] },
+            shininessMap: { value: this.gBuffer.textures[4] },
             pointLights: { value: this.pointlightsTHREE },
             numPointLightsInUse: { value: pointLights.length },
             skyLight: { value: RenderingPipeline.convertSkyLight(skyLight) },
@@ -155,6 +157,8 @@ export class RenderingPipeline {
         RenderingPipeline.padPointLights(this.pointlightsTHREE);
         this.lightingMaterial.uniforms.pointLights.value = this.pointlightsTHREE;
         this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
+
+        console.log(pointLights[0].positionWorld);
 
         this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
         RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
@@ -287,7 +291,7 @@ export class RenderingPipeline {
         return new THREE.WebGLRenderTarget(width, height, {
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
-            count: 3
+            count: 5
         });
     }
 
