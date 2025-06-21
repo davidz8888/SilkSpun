@@ -2,6 +2,7 @@
 // precision mediump float;
 
 out vec3 v_positionWorld;    // World position of the vertex
+out vec3 v_viewPositionWorld;
 out vec3 v_normalWorld;      // Normal in world space
 out vec2 v_uv;               // Texture coordinates
 
@@ -12,6 +13,7 @@ void main() {
 
     // Pass data to the fragment shader
     v_positionWorld = worldPosition.xyz;
+
     v_normalWorld = mat3(modelMatrix) * normal; // Transform normal into world space
     v_uv = uv;
 

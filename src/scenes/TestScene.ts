@@ -21,17 +21,17 @@ export class TestScene extends Scene {
 
         this.addLayer(lightLayer);
 
-        const testFloor = new PassiveEntity('test_materials');
-        const floorLayer = new Layer('floor_layer', -60);
+        const testFloor = new PassiveEntity('test_floor');
+        const floorLayer = new Layer('floor_layer', -40);
         floorLayer.addEntity(testFloor, 0, 0);
 
         this.addLayer(floorLayer);
 
-        // this.testWall = new PassiveEntity('test_wall');
-        // this.wallLayer = new Layer('wall_layer', -50);
-        // this.wallLayer.addEntity(this.testWall, 0, 0);
+        const testWall = new PassiveEntity('test_wall');
+        const wallLayer = new Layer('wall_layer', -50);
+        wallLayer.addEntity(testWall, 0, 0);
 
-        // this.addLayer(this.wallLayer);
+        this.addLayer(wallLayer);
     }
 
 }

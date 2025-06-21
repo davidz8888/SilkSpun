@@ -7,6 +7,7 @@ import { ForegroundEntity } from '../entities/ForegroundEntity';
 import { BackgroundEntity } from '../entities/BackgroundEntity';
 import { SkyLight, skyLight, InfiniteLight, infiniteLights, PointLight, pointLights, updateDayNight, debugDayNight } from '../controller/LightingController';
 import { Vec3 } from '../math/Vec3';
+import { SkySampler } from './SkySampler';
 
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
@@ -23,7 +24,7 @@ export class RenderingPipeline {
 
     private pointlightsTHREE: any[];
     private infiniteLightsTHREE: any[];
-    private skyLightTHREE: any;
+    private skyLightDirections: THREE.Vector3[];
 
     // Materials
     private lightingMaterial: THREE.ShaderMaterial;
@@ -62,7 +63,6 @@ export class RenderingPipeline {
             100
         );
 
-
         // Initialize render targets
         this.backgroundTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
         this.gBuffer = this.createGBuffer(sceneWidth, sceneHeight);
@@ -79,8 +79,10 @@ export class RenderingPipeline {
         this.pointlightsTHREE = RenderingPipeline.convertPointLights(pointLights);
         RenderingPipeline.padPointLights(this.pointlightsTHREE);
 
+        this.skyLightDirections = SkySampler.generateSkySamples(100);
+
         this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
-        RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
+        RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE);
 
         const lightingUniforms = {
             screenWidth: { value: sceneWidth },
@@ -93,6 +95,7 @@ export class RenderingPipeline {
             pointLights: { value: this.pointlightsTHREE },
             numPointLightsInUse: { value: pointLights.length },
             skyLight: { value: RenderingPipeline.convertSkyLight(skyLight) },
+            skyLightDirections: { value: this.skyLightDirections },
             infiniteLights: { value: this.infiniteLightsTHREE },
             numInfiniteLightsInUse: { value: infiniteLights.length }
         };
@@ -135,6 +138,7 @@ export class RenderingPipeline {
 
         const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
         this.screenScene.add(screenQuad);
+
     }
 
 
@@ -158,7 +162,7 @@ export class RenderingPipeline {
         this.lightingMaterial.uniforms.pointLights.value = this.pointlightsTHREE;
         this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
 
-        console.log(pointLights[0].positionWorld);
+        this.lightingMaterial.uniforms.skyLight.value = RenderingPipeline.convertSkyLight(skyLight);
 
         this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
         RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)

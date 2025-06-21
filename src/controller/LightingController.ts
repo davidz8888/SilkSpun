@@ -33,8 +33,8 @@ export function addPointLight(pointLight: PointLight) {
 
 
 export const skyLight: SkyLight = {
-    color: new Vec3(0.0, 0.0, 0.0),
-    shadowDistance: 20.0
+    color: new Vec3(0.7, 0.7, 1.0),
+    shadowDistance: 10.0
 };
 
 
