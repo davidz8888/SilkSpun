@@ -113,7 +113,7 @@ float zOnPlane(vec2 xy, vec3 pointOnPlane, vec3 planeNormal) {
 
 }
 
-bool rayOcclusionCheck(vec3 rayPos, vec2 terrainCell) {
+bool reconstructionOcclusionCheck(vec3 rayPos, vec2 terrainCell) {
 
     vec2 terrainCellCenter = terrainCell += 0.5;
     vec2 terrainUV = toUV(vec3(terrainCellCenter.x, terrainCellCenter.y, 0.0));
@@ -124,7 +124,7 @@ bool rayOcclusionCheck(vec3 rayPos, vec2 terrainCell) {
     return (rayPos.z < zOnPlane(rayPos.xy, terrainSample, terrainNormal));
 }
 
-bool debugOcclusionCheck(vec3 rayPos, vec2 terrainCell) {
+bool simpleOcclusionCheck(vec3 rayPos, vec2 terrainCell) {
     
     vec2 terrainUV = toUV(vec3(terrainCell.x, terrainCell.y, 0.0));
     float terrainHeight = getZ(terrainUV);
@@ -168,6 +168,20 @@ vec3 cookTorranceBRDF(vec3 normal, vec3 viewDir, vec3 lightDir, float roughness,
     vec3 diffuse = (1.0 - F) * (1.0 - metalness) * (1.0 / 3.14159265);
 
     return (F * D * G) + diffuse;
+}
+
+vec3 phongSpecular(vec3 specular, float shininess, vec3 lightColor, vec3 lightDir, vec3 normal, vec3 viewDir) {
+
+    vec3 reflectedDir = reflect(-lightDir, normal);
+
+    float normalizationFactor = (shininess + 2.0) / (2.0 * PI);
+
+    return normalizationFactor * specular * lightColor * pow(max(dot(reflectedDir, viewDir), 0.0), shininess);
+}
+
+vec3 phongDiffuse(vec3 albedo, vec3 lightColor, vec3 lightDir, vec3 normal) {
+
+    return albedo * lightColor * max(dot(lightDir, normal), 0.0);
 }
 
 // Ray march from fragment to light source
@@ -241,7 +255,7 @@ vec3 pointLighting() {
                 vec3 rayCurrPos = mix(fragPos, lightPos, t);
 
                 // Check exiting current cell
-                if (debugOcclusionCheck(rayCurrPos, currCell)) {
+                if (simpleOcclusionCheck(rayCurrPos, currCell)) {
                     rayFactor = 0.0;
                     break;
                 }
@@ -249,7 +263,7 @@ vec3 pointLighting() {
                 currCell += currStep;
 
                 // Check entering next cell
-                if (debugOcclusionCheck(rayCurrPos, currCell)) {
+                if (simpleOcclusionCheck(rayCurrPos, currCell)) {
                     rayFactor = 0.0;
                     break;
                 }
@@ -261,22 +275,29 @@ vec3 pointLighting() {
             vec3 lightDir = normalize(displacement);
 
 
-            vec4 albedo = texture(albedoMap, v_uv);
-            float roughness = texture(roughnessMap, v_uv).r;
-            float metalness = texture(metalnessMap, v_uv).r;
-            vec3 F0 = mix(vec3(0.04), albedo.xyz, metalness);
+            vec3 albedo = texture(albedoMap, v_uv).xyz;
+            vec3 specular = texture(metalnessMap, v_uv).xyz;
+            float shininess = texture(roughnessMap, v_uv).r * 1000.0;
+            // vec3 F0 = mix(vec3(0.04), albedo.xyz, metalness);
 
             // Compute PBR shading with Cook-Torrance BRDF
-            vec3 specularFactor = cookTorranceBRDF(normal, viewDir, lightDir, roughness, metalness, F0);
 
-            // Lambertian diffuse (not using full PBR reflection here)
-            vec3 diffuseFactor = albedo.xyz * max(dot(normal, lightDir), 0.0);
 
             vec3 lightColor = lightWithDistance(light, length(displacement));
+            
+            vec3 diffuseComponent = phongDiffuse(albedo, lightColor, lightDir, normal);
+            vec3 sepcularComponent = phongSpecular(specular, shininess, lightColor, lightDir, normal, viewDir);
+
+            if (sepcularComponent.x < 0.0 || sepcularComponent.y < 0.0 || sepcularComponent.z < 0.0) {
+
+                sepcularComponent = vec3(1.0, 0.0, 0.0);
+
+            }
 
 
             float rayWeight = 1.0 / float(NUM_RAYS);
-            totalLight += rayWeight * normalFactor * (specularFactor + diffuseFactor) * lightColor;
+            totalLight += diffuseComponent;
+            totalLight += sepcularComponent;
 
         }
     }
