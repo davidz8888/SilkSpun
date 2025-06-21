@@ -13,7 +13,6 @@ import { SkySampler } from './SkySampler';
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
-import { positionWorld, roughness } from 'three/tsl';
 
 export class RenderingPipeline {
     private sceneWidth: number;
@@ -297,15 +296,6 @@ export class RenderingPipeline {
             magFilter: THREE.NearestFilter,
             count: 5
         });
-    }
-
-
-    /**
-     * Updates lighting uniforms.
-     * (Example usage, pass in light data from game logic.)
-     */
-    updateLightingUniforms(pointLights: any[], skyLight: any, infiniteLights: any) {
-        // Example: this.lightingMaterial.uniforms.pointLights.value = pointLights;
     }
 
 

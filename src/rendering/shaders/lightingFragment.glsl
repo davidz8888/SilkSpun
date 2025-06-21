@@ -141,8 +141,8 @@ vec3 phongSpecular(vec3 specular, float shininess, vec3 lightColor, vec3 lightDi
 
     float normalizationFactor = (shininess + 2.0) / (2.0 * PI);
 
-    return normalizationFactor * specular * lightColor * pow(max(dot(reflectedDir, viewDir), 0.0), 5.0);
-    // return specular * lightColor * pow(max(dot(reflectedDir, viewDir), 0.0), shininess);
+    return normalizationFactor * specular * lightColor * pow(max(dot(reflectedDir, viewDir), 0.0), shininess);
+    // return specular * lightColor * pow(max(dot(reflectedDir, viewDir), 0.0), 255.0 * 0.8);
 }
 
 vec3 phongDiffuse(vec3 albedo, vec3 lightColor, vec3 lightDir, vec3 normal) {
@@ -234,7 +234,7 @@ vec3 pointLighting() {
 
             vec3 albedo = texture(albedoMap, v_uv).rgb;
             vec3 specular = texture(specularMap, v_uv).rgb;
-            float shininess = texture(shininessMap, v_uv).r * 255.0;
+            float shininess = max(texture(shininessMap, v_uv).r * 20.0, 4.0);
             vec3 lightColor = lightWithDistance(light, length(displacement));
             vec3 lightDir = normalize(displacement);
             vec3 viewDir = normalize(-fragPos);

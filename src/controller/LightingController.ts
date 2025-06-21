@@ -1,3 +1,5 @@
+// src/controller/LightingController.ts
+
 import { Vec3 } from '../math/Vec3';
 
 export interface PointLight {
@@ -33,7 +35,7 @@ export function addPointLight(pointLight: PointLight) {
 
 
 export const skyLight: SkyLight = {
-    color: new Vec3(0.7, 0.7, 1.0),
+    color: new Vec3(0.2, 0.2, 0.5),
     shadowDistance: 10.0
 };
 

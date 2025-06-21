@@ -1,5 +1,7 @@
 // src/math/Vec3.ts
 
+import { Vec2 } from "./Vec2";
+
 export class Vec3 {
     x: number;
     y: number;
@@ -26,6 +28,12 @@ export class Vec3 {
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;
+        return this;
+    }
+
+    addVec2(v: Vec2): this {
+        this.x += v.x;
+        this.y += v.y;
         return this;
     }
 

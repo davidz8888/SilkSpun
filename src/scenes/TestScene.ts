@@ -16,10 +16,16 @@ export class TestScene extends Scene {
 
         const moveableLight = new MoveableLight('transparent');
         moveableLight.setInputController(inputController);
-        const lightLayer = new Layer('light_layer', -20);
+        const lightLayer = new Layer('light_layer', 0);
         lightLayer.addEntity(moveableLight, 0, 0);
 
         this.addLayer(lightLayer);
+
+        const goldBar = new PassiveEntity('gold_bar');
+        const goldLayer = new Layer('gold_layer', -30);
+        goldLayer.addEntity(goldBar, 0, 0);
+
+        this.addLayer(goldLayer);
 
         const testFloor = new PassiveEntity('test_floor');
         const floorLayer = new Layer('floor_layer', -40);
