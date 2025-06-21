@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "echo 'Starting deployment to gh-pages...' && gh-pages -d dist && echo 'Deployment to gh-pages completed!'"
   },
   "devDependencies": {
     "@types/three": "^0.173.0",
