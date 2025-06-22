@@ -9,13 +9,22 @@ uniform sampler2D cellMap;
 uniform sampler2D typeMap;
 
 
+
 layout(location = 0) out vec4 fragColor0; // Cell Info
 layout(location = 1) out vec4 fragColor1; // Fluid Type
 
 
 void main() {
+
     vec4 cell = texture(cellMap, v_uv);
+    // cell.r = acceleration_x;
+    // cell.g = acceleration_y;
+    // cell.b = solidness
+    // cell.a = emission;
+
     vec4 type = texture(typeMap, v_uv);
+
+    // type.r = 
 
     fragColor0 = cell;
     fragColor1 = type;
