@@ -1,5 +1,3 @@
-// src/core/ActiveEntity.ts
-
 import { ForegroundEntity } from './ForegroundEntity';
 
 export abstract class ActiveEntity extends ForegroundEntity{
