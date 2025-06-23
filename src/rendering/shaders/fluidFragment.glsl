@@ -13,9 +13,16 @@ uniform sampler2D typeMap;
 
 out vec4 fragColor;
 
-float v_up;
-float v_down;
+float velocityX
+float velocityY
 
+vec2 toUV(vec3 worldPos) { 
+    return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
+}
+
+advectQuantity(float dT) {
+    vec2 lastPos = vec2(v_);
+}
 
 main() {
     fragColor = 
