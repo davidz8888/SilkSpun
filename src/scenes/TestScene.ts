@@ -5,14 +5,17 @@ import { MoveableLight } from '../entities/MoveableLight'
 import { Scene } from '../core/Scene';
 import { Layer } from '../core/Layer';
 import { InputController } from '../controller/InputController';
+import { LightingController } from '../controller/LightingController';
+import { GameWorld } from '../core/GameWorld';
 
 
 export class TestScene extends Scene {
 
-    constructor() {
-        super()
+    constructor(gameWorld: GameWorld) {
+        super(gameWorld)
 
         const inputController: InputController = new InputController();
+        const LightingController: LightingController = new LightingController();
 
         const moveableLight = new MoveableLight('transparent');
         moveableLight.setInputController(inputController);
