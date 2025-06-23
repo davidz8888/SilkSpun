@@ -5,17 +5,17 @@ in vec3 v_positionWorld;
 in vec3 v_normalWorld; 
 in vec2 v_uv;               
 
-uniform sampler2D inputMap;
+uniform sampler2D hydraulicsMap;
 uniform sampler2D matterMap;
 
 
-layout(location = 0) out vec4 fragColor0; // Game Info
-layout(location = 1) out vec4 fragColor1; // Fluid Type
+layout(location = 0) out vec4 fragColor0; // game input info
+layout(location = 1) out vec4 fragColor1; // matter type
 
 
 void main() {
 
-    vec4 game = texture(inputMap, v_uv);
+    vec4 hydraulics = texture(inputMap, v_uv);
     // input.r = acceleration_x;
     // input.g = acceleration_y;
     // input.b = solidness
@@ -25,6 +25,6 @@ void main() {
 
     // type.r = 
 
-    fragColor0 = cell;
+    fragColor0 = hydraulics;
     fragColor1 = matter;
 }
