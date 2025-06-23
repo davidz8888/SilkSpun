@@ -1,5 +1,3 @@
-// src/core/Entity.ts
-
 import * as THREE from 'three';
 import { Vec3 } from '../math/Vec3'
 

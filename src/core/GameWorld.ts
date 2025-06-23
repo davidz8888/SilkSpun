@@ -1,5 +1,3 @@
-// src/core/GameWorld.ts
-
 import { Scene } from './Scene';
 import { Layer } from './Layer';
 import { Entity } from '../entities/Entity';

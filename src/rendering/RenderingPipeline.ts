@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Entity } from '../entities/Entity';
 import { ForegroundEntity } from '../entities/ForegroundEntity';
 import { BackgroundEntity } from '../entities/BackgroundEntity';
-import { SkyLight, skyLight, InfiniteLight, infiniteLights, PointLight, pointLights, updateDayNight, debugDayNight } from '../controller/LightingController';
+import { LightingController, PointLight, InfiniteLight, SkyLight} from '../controller/LightingController';
 import { Vec3 } from '../math/Vec3';
 import { SkySampler } from './SkySampler';
 
@@ -21,8 +21,13 @@ export class RenderingPipeline {
     private renderer: THREE.WebGLRenderer;
     private camera: THREE.Camera;
 
-    private pointlightsTHREE: any[];
+    private pointLights: PointLight[];
+    private pointLightsTHREE: any[];
+
+    private infiniteLights: InfiniteLight[];
     private infiniteLightsTHREE: any[];
+
+    private skyLight: SkyLight;
     private skyLightDirections: THREE.Vector3[];
 
     // Materials
@@ -75,13 +80,17 @@ export class RenderingPipeline {
         this.compositeScene = new THREE.Scene();
         this.screenScene = new THREE.Scene();
 
-        this.pointlightsTHREE = RenderingPipeline.convertPointLights(pointLights);
-        RenderingPipeline.padPointLights(this.pointlightsTHREE);
+        this.pointLights = LightingController.getPointLights();
+        console.log(this.pointLights);
+        this.pointLightsTHREE = RenderingPipeline.convertPointLights(this.pointLights);
+        RenderingPipeline.padPointLights(this.pointLightsTHREE);
 
-        this.skyLightDirections = SkySampler.generateSkySamples(100);
-
-        this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
+        this.infiniteLights = LightingController.getInfiniteLights();
+        this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(this.infiniteLights);
         RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE);
+
+        this.skyLight = LightingController.getSkyLight();
+        this.skyLightDirections = SkySampler.generateSkySamples(100);
 
         const lightingUniforms = {
             screenWidth: { value: sceneWidth },
@@ -91,12 +100,12 @@ export class RenderingPipeline {
             heightMap: { value: this.gBuffer.textures[2] },
             specularMap: { value: this.gBuffer.textures[3] },
             shininessMap: { value: this.gBuffer.textures[4] },
-            pointLights: { value: this.pointlightsTHREE },
-            numPointLightsInUse: { value: pointLights.length },
-            skyLight: { value: RenderingPipeline.convertSkyLight(skyLight) },
+            pointLights: { value: this.pointLightsTHREE },
+            numPointLightsInUse: { value: this.pointLights.length },
+            skyLight: { value: RenderingPipeline.convertSkyLight(this.skyLight) },
             skyLightDirections: { value: this.skyLightDirections },
             infiniteLights: { value: this.infiniteLightsTHREE },
-            numInfiniteLightsInUse: { value: infiniteLights.length }
+            numInfiniteLightsInUse: { value: this.infiniteLights.length }
         };
 
         this.lightingMaterial = new THREE.ShaderMaterial({
@@ -156,19 +165,19 @@ export class RenderingPipeline {
         // Lighting Pass
         // Update light uniforms explicitly each frame
 
-        this.pointlightsTHREE = RenderingPipeline.convertPointLights(pointLights);
-        RenderingPipeline.padPointLights(this.pointlightsTHREE);
-        this.lightingMaterial.uniforms.pointLights.value = this.pointlightsTHREE;
-        this.lightingMaterial.uniforms.numPointLightsInUse.value = pointLights.length;
+        this.pointLights = LightingController.getPointLights();
+        this.pointLightsTHREE = RenderingPipeline.convertPointLights(this.pointLights);
+        RenderingPipeline.padPointLights(this.pointLightsTHREE);
+        this.lightingMaterial.uniforms.pointLights.value = this.pointLightsTHREE;
+        this.lightingMaterial.uniforms.numPointLightsInUse.value = this.pointLights.length;
+        this.lightingMaterial.uniforms.skyLight.value = RenderingPipeline.convertSkyLight(this.skyLight);
 
-        this.lightingMaterial.uniforms.skyLight.value = RenderingPipeline.convertSkyLight(skyLight);
-
-        this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(infiniteLights);
+        this.infiniteLights = LightingController.getInfiniteLights();
+        this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(this.infiniteLights);
         RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
         this.lightingMaterial.uniforms.infiniteLights.value = this.infiniteLightsTHREE;
-        this.lightingMaterial.uniforms.numInfiniteLightsInUse.value = pointLights.length;
-
-        
+        this.lightingMaterial.uniforms.numInfiniteLightsInUse.value = this.pointLights.length;
+    
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
@@ -233,8 +242,8 @@ export class RenderingPipeline {
     }
 
 
-    private static convertPointLights(pointlights: PointLight[]): any[] {
-        return pointlights.map(pointLight => ({
+    private static convertPointLights(pointLights: PointLight[]): any[] {
+        return pointLights.map(pointLight => ({
             positionWorld: RenderingPipeline.convertToThreeVec3(pointLight.positionWorld),
             color: RenderingPipeline.convertToThreeVec3(pointLight.color),
             falloff: pointLight.falloff,
@@ -242,7 +251,7 @@ export class RenderingPipeline {
         }));
     }
 
-    private static padPointLights(pointlights: any[]) {
+    private static padPointLights(pointLights: any[]) {
         const defaultLight = {
             positionWorld: new THREE.Vector3(0, 0, 0),
             color: new THREE.Vector3(0, 0, 0),
@@ -252,8 +261,8 @@ export class RenderingPipeline {
     
         const MAX_POINTLIGHTS = 100
 
-        while (pointlights.length < MAX_POINTLIGHTS) {
-            pointlights.push(defaultLight);
+        while (pointLights.length < MAX_POINTLIGHTS) {
+            pointLights.push(defaultLight);
         }
     }
 

@@ -1,17 +1,14 @@
-// src/core/Scene.ts
-
+import { GameWorld } from './GameWorld';
 import { Layer } from './Layer';
 
 export abstract class Scene {
 
+    private gameWorld: GameWorld;
     private layers: Layer[];
 
-    constructor(layers: Layer[] | null = null) {
-        if (layers != null) {
-            this.layers = layers;
-        } else {
-            this.layers = [];
-        }
+    constructor(gameWorld: GameWorld) {
+        this.gameWorld = gameWorld;
+        this.layers = [];
     }
 
 
