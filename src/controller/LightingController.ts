@@ -21,30 +21,22 @@ export interface InfiniteLight {
 
 export class LightingController {
 
-    private static pointLights: PointLight[];
-    private static infiniteLights: InfiniteLight[];
-    private static skyLight: SkyLight;
+    private static pointLights: PointLight[] = [];
+    private static infiniteLights: InfiniteLight[] = [];
+    private static skyLight: SkyLight = {
+        color: new Vec3(0.2, 0.2, 0.5),
+        shadowDistance: 10.0
+    };;
 
-    private static sunLight: InfiniteLight;
-
-
-    constructor() {
-        LightingController.pointLights = [];
-        LightingController.infiniteLights = [];
-        LightingController.skyLight = {
-            color: new Vec3(0.2, 0.2, 0.5),
-            shadowDistance: 10.0
-        };
-
-        LightingController.sunLight = {
-            direction: new Vec3(0.0, 0.0, 0.0),
-            color: new Vec3(0.0, 0.0, 0.0),
-            shadowDistance: 30.0
-        }
-
-        LightingController.infiniteLights.push(LightingController.sunLight);
+    private static sunLight: InfiniteLight = {
+        direction: new Vec3(0.0, 0.0, 0.0),
+        color: new Vec3(0.0, 0.0, 0.0),
+        shadowDistance: 30.0
     }
 
+    static {
+        LightingController.infiniteLights.push(LightingController.sunLight);    
+    }
 
     static addPointLight(pointLight: PointLight) {
         LightingController.pointLights.push(pointLight);

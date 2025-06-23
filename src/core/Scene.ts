@@ -1,13 +1,10 @@
-import { GameWorld } from './GameWorld';
 import { Layer } from './Layer';
 
 export abstract class Scene {
 
-    private gameWorld: GameWorld;
     private layers: Layer[];
 
-    constructor(gameWorld: GameWorld) {
-        this.gameWorld = gameWorld;
+    constructor() {
         this.layers = [];
     }
 

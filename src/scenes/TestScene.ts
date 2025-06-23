@@ -6,19 +6,15 @@ import { Scene } from '../core/Scene';
 import { Layer } from '../core/Layer';
 import { InputController } from '../controller/InputController';
 import { LightingController } from '../controller/LightingController';
-import { GameWorld } from '../core/GameWorld';
 
 
 export class TestScene extends Scene {
 
-    constructor(gameWorld: GameWorld) {
-        super(gameWorld)
+    constructor() {
+        super()
 
-        const inputController: InputController = new InputController();
-        const LightingController: LightingController = new LightingController();
 
         const moveableLight = new MoveableLight('transparent');
-        moveableLight.setInputController(inputController);
         const lightLayer = new Layer('light_layer', 0);
         lightLayer.addEntity(moveableLight, 0, 0);
 

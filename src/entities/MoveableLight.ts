@@ -14,19 +14,17 @@ export class MoveableLight extends ActiveEntity {
 
     constructor(textureName: string | null = null) {
         super(textureName);
+        this.setupMouseEvents();
+
     }
 
-    public override initMesh() {
+    override initMesh() {
         this.createPointLight(new Vec3(1.0, 1.0, 0.5), 0.0, 200);
         return super.initMesh();
     }
 
-    public setInputController(controller: InputController) {
-        this.input = controller;
-        this.setupMouseEvents();
-    }
 
-    public override setPosition(x: number, y: number, z: number): void {
+    override setPosition(x: number, y: number, z: number): void {
         super.setPosition(x, y, z);
         this.setPointLightPosition(new Vec3(x, y, z));
     }
@@ -48,14 +46,14 @@ export class MoveableLight extends ActiveEntity {
     }
 
     public override update(dT: number): void {
-        if (!this.positionWorld || !this.input) return;
+        if (!this.positionWorld) return;
 
         // Handle movement via keys
         const moveVec = new Vec3();
-        if (this.input.isKeyDown('w')) moveVec.y += this.moveSpeed;
-        if (this.input.isKeyDown('s')) moveVec.y -= this.moveSpeed;
-        if (this.input.isKeyDown('a')) moveVec.x -= this.moveSpeed;
-        if (this.input.isKeyDown('d')) moveVec.x += this.moveSpeed;
+        if (InputController.isKeyDown('w')) moveVec.y += this.moveSpeed;
+        if (InputController.isKeyDown('s')) moveVec.y -= this.moveSpeed;
+        if (InputController.isKeyDown('a')) moveVec.x -= this.moveSpeed;
+        if (InputController.isKeyDown('d')) moveVec.x += this.moveSpeed;
 
         // Apply key movement
         this.positionWorld!.add(moveVec);
@@ -74,15 +72,13 @@ export class MoveableLight extends ActiveEntity {
     }
 
     private setupMouseEvents() {
-        if (!this.input) return;
-
-        this.input.setMouseDownCallback((e) => this.onMouseDown(e));
-        this.input.setMouseMoveCallback((e) => this.onMouseMove(e));
-        this.input.setMouseUpCallback(() => this.onMouseUp());
+        InputController.setMouseDownCallback((e) => this.onMouseDown(e));
+        InputController.setMouseMoveCallback((e) => this.onMouseMove(e));
+        InputController.setMouseUpCallback(() => this.onMouseUp());
     }
 
     private onMouseDown(e: MouseEvent) {
-        const mousePos = this.input?.getMousePosition(); // Now returns Vec2
+        const mousePos = InputController?.getMousePosition(); // Now returns Vec2
         if (!mousePos) return;
 
         // Check if the mouse is over the light (or near it)
@@ -95,7 +91,7 @@ export class MoveableLight extends ActiveEntity {
     }
 
     private onMouseMove(e: MouseEvent) {
-        const mousePos = this.input?.getMousePosition();
+        const mousePos = InputController?.getMousePosition();
         if (!this.isDragging || !mousePos) return;
 
         this.lastMousePosition = mousePos;
