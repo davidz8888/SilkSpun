@@ -21,9 +21,9 @@ export class TestScene extends Scene {
 
         this.addLayer(lightLayer);
 
-        const goldBar = new PassiveEntity('gold_bar');
-        const goldLayer = new Layer('gold_layer', -30);
-        goldLayer.addEntity(goldBar, 0, 0);
+        const goldBar = new PassiveEntity('lotus');
+        const goldLayer = new Layer('gold_layer', -20);
+        goldLayer.addEntity(goldBar, 0, -30);
 
         this.addLayer(goldLayer);
 
