@@ -16,6 +16,7 @@ export abstract class ForegroundEntity extends Entity {
         const heightMap: THREE.Texture = await ForegroundEntity.loadTexture(`${pathPrefix}${this.textureName}_height.png`);
         const specularMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_specular.png`);
         const shininessMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_shininess.png`);
+        const hydraulicsMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_hydraulics.png`);
 
         // Create the square that faces the camera
         const objectGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
@@ -25,7 +26,8 @@ export abstract class ForegroundEntity extends Entity {
                 normalMap: { value: normalMap },
                 heightMap: { value: heightMap },
                 specularMap: { value: specularMap },
-                shininessMap: { value: shininessMap }
+                shininessMap: { value: shininessMap },
+                hydraulicsMap: { value: hydraulicsMap }
             },
             glslVersion: THREE.GLSL3,
             vertexShader: defualtVertexShader,
