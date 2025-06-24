@@ -9,6 +9,7 @@ uniform float screenHeight;
 
 uniform sampler2D background; 
 uniform sampler2D foreground;
+uniform sampler2D fluidMatter;
 
 out vec4 fragColor;
 

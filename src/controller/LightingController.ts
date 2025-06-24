@@ -130,7 +130,6 @@ export class LightingController {
     }
 
     static getPointLights(): PointLight[] {
-        console.log(LightingController.pointLights)
         return LightingController.pointLights;
     }
     

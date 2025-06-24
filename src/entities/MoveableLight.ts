@@ -67,7 +67,6 @@ export class MoveableLight extends ActiveEntity {
             const lightMove = new Vec2(mouseDisplacementX / 4, mouseDisplacementY / 4);
             this.positionWorld!.addVec2(lightMove);
             this.pointLight!.positionWorld.addVec2(lightMove);
-            console.log(lightMove);
         }
     }
 

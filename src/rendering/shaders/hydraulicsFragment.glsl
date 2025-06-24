@@ -11,7 +11,8 @@ uniform float screenHeight;
 uniform sampler2D hydraulicsMap;
 uniform sampler2D flowMap;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor0; // Flow
+layout(location = 1) out vec4 fragColor1; // Matter
 
 float NORMALIZATION_FACTOR = 100.0
 
@@ -29,7 +30,7 @@ float normalizeAcceleration(float acceleration) {
 
 vec2 calculateVelocities() {
     
-    vec2 cellVelocity = texture(flowMap).xy;
+    vec2 cellVelocity = texture(flowMap, v_uv).xy;
     cellVelocity.x = normalizeVelocity(cellVelocity.x);
     cellVelocity.y = normalizeVelocity(cellVelocity.y);
 
@@ -51,8 +52,17 @@ vec2 calculateVelocities() {
     return cellVelocity;
 }
 
+
+vec2 calculateEmissions() {
+    float waterEmission = texture(hydraulicsMap, v_uv).a;
+    return vec4(waterEmission, 0.0, 0.0, 0.0);
+}
+
 main() {
     vec4 flowInfo = texture(flowMap, v_uv);
     vec2 cellVelocity = calculateVelocities();
-    fragColor = vec4(cellVelocity.x, cellVelocity.y, flowInfo.z, flowInfo.w);
+    vec4 matter = texture(matterMap, v_uv);
+
+    fragColor0 = vec4(cellVelocity.x, cellVelocity.y, flowInfo.z, flowInfo.w);
+    fragColor1 = matter + calculateEmissions();
 }

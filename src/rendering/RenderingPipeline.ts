@@ -12,7 +12,7 @@ import { SkySampler } from './SkySampler';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
-import accelerationFragmentShader from './shaders/accelerationFragment.glsl';
+import hydraulicsFragmentShader from './shaders/hydraulicsFragment.glsl';
 import advectionFragmentShader from './shaders/advectionFragment.glsl';
 import projectionFragmentShader from './shaders/projectionFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
@@ -38,8 +38,7 @@ export class RenderingPipeline {
     private backgroundTarget: THREE.WebGLRenderTarget;
     private gBuffer: THREE.WebGLRenderTarget;
     private lightingTarget: THREE.WebGLRenderTarget;
-    private fBuffer: THREE.WebGLRenderTarget;
-    private accelerationTarget: THREE.WebGLRenderTarget;
+    private hydraulicsTarget: THREE.WebGLRenderTarget;
     private advectionTarget: THREE.WebGLRenderTarget;
     private projectionTarget: THREE.WebGLRenderTarget;
     private compositeTarget: THREE.WebGLRenderTarget;
@@ -47,7 +46,7 @@ export class RenderingPipeline {
     private backgroundScene: THREE.Scene;
     private terrainScene: THREE.Scene;
     private lightingScene: THREE.Scene;
-    private accelerationScene: THREE.Scene;
+    private hydraulicsScene: THREE.Scene;
     private advectionScene: THREE.Scene;
     private projectionScene: THREE.Scene;
     private compositeScene: THREE.Scene;
@@ -76,16 +75,15 @@ export class RenderingPipeline {
         this.backgroundTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
         this.gBuffer = this.createMRT(sceneWidth, sceneHeight, 6);
         this.lightingTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-        this.fBuffer = this.createMRT(sceneWidth, sceneHeight, 2);
-        this.accelerationTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-        this.advectionTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-        this.projectionTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+        this.hydraulicsTarget = this.createMRT(sceneWidth, sceneHeight, 2);
+        this.advectionTarget = this.createMRT(sceneWidth, sceneHeight, 2);
+        this.projectionTarget = this.createMRT(sceneWidth, sceneHeight, 2);
         this.compositeTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
 
         this.backgroundScene = new THREE.Scene();
         this.terrainScene = new THREE.Scene();
         this.lightingScene = new THREE.Scene();
-        this.accelerationScene = new THREE.Scene();
+        this.hydraulicsScene = new THREE.Scene();
         this.advectionScene = new THREE.Scene();
         this.projectionScene = new THREE.Scene();
         this.compositeScene = new THREE.Scene();
@@ -129,65 +127,66 @@ export class RenderingPipeline {
         const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.lightingMaterial);
         this.lightingScene.add(lightingQuad);
 
-        const accelerationUniforms = {
+        const hydraulicsUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
-            flowMap: { value: this.fBuffer.textures[0]},
+            flowMap: { value: this.projectionTarget.textures[0]},
         }
 
-        const accelerationMaterial = new THREE.ShaderMaterial({
-            uniforms: accelerationUniforms,
+        const hydraulicsMaterial = new THREE.ShaderMaterial({
+            uniforms: hydraulicsUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
-            fragmentShader: accelerationFragmentShader
+            fragmentShader: hydraulicsFragmentShader
         });
         
-        const accelerationQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), accelerationMaterial);
-        this.lightingScene.add(accelerationQuad);
+        const hydraulicsQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), hydraulicsMaterial);
+        this.hydraulicsScene.add(hydraulicsQuad);
 
         const advectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
-            flowMap: { value: this.fBuffer.textures[0] },
-            matterMap: { value: this.fBuffer.textures[1] }
+            flowMap: { value: this.hydraulicsTarget.textures[0] },
+            matterMap: { value: this.hydraulicsTarget.textures[1] }
         }
 
         const advectionMaterial = new THREE.ShaderMaterial({
             uniforms: advectionUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
-            fragmentShader: accelerationFragmentShader
+            fragmentShader: advectionFragmentShader
         });
         
         const advectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), advectionMaterial);
-        this.lightingScene.add(advectionQuad);
+        this.advectionScene.add(advectionQuad);
 
         const projectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
 
-            flowMap: { value: this.fBuffer.textures[0] },
-            matterMap: { value: this.fBuffer.textures[1] }
+            flowMap: { value: this.advectionTarget.textures[0] },
+            matterMap: { value: this.advectionTarget.textures[1] }
         }
 
         const projectionMaterial = new THREE.ShaderMaterial({
-            uniforms: advectionUniforms,
+            uniforms: projectionUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
-            fragmentShader: accelerationFragmentShader
+            fragmentShader: projectionFragmentShader
         });
         
         const projectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), projectionMaterial);
-        this.lightingScene.add(projectionQuad);
+        this.projectionScene.add(projectionQuad);
 
         const compositeUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             background: { value: this.backgroundTarget.texture },
             foreground: { value: this.lightingTarget.texture },
+            fluidMatter: { value: this.projectionTarget.textures[1]}
         };
 
         const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
@@ -244,7 +243,7 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
-        this.renderer.setRenderTarget(this.accelerationTarget);
+        this.renderer.setRenderTarget(this.hydraulicsTarget);
 
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
