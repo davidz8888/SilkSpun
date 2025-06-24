@@ -3,11 +3,9 @@
 import * as THREE from 'three';
 import { Entity } from './Entity';
 import defualtVertexShader from '../rendering/shaders/defaultVertex.glsl';
-import geometryFragmentShader from '../rendering/shaders/geometryFragment.glsl';
+import terrainFragmentShader from '../rendering/shaders/terrainFragment.glsl';
 
 export abstract class ForegroundEntity extends Entity {
-
-    
 
     protected async createTHREEMesh(): Promise<THREE.Mesh> {
         const pathPrefix: string = './assets/textures/';
@@ -31,7 +29,7 @@ export abstract class ForegroundEntity extends Entity {
             },
             glslVersion: THREE.GLSL3,
             vertexShader: defualtVertexShader,
-            fragmentShader: geometryFragmentShader
+            fragmentShader: terrainFragmentShader
         });
 
         return new THREE.Mesh(objectGeometry, objectMaterial);

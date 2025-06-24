@@ -12,6 +12,9 @@ import { SkySampler } from './SkySampler';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
+import accelerationFragmentShader from './shaders/accelerationFragment.glsl';
+import advectionFragmentShader from './shaders/advectionFragment.glsl';
+import projectionFragmentShader from './shaders/projectionFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
 
 export class RenderingPipeline {
@@ -30,22 +33,25 @@ export class RenderingPipeline {
     private skyLight: SkyLight;
     private skyLightDirections: THREE.Vector3[];
 
-    // Materials
     private lightingMaterial: THREE.ShaderMaterial;
 
-    // Render targets
     private backgroundTarget: THREE.WebGLRenderTarget;
     private gBuffer: THREE.WebGLRenderTarget;
     private lightingTarget: THREE.WebGLRenderTarget;
+    private fBuffer: THREE.WebGLRenderTarget;
+    private accelerationTarget: THREE.WebGLRenderTarget;
+    private advectionTarget: THREE.WebGLRenderTarget;
+    private projectionTarget: THREE.WebGLRenderTarget;
     private compositeTarget: THREE.WebGLRenderTarget;
 
-    // Scenes
     private backgroundScene: THREE.Scene;
-    private geometryScene: THREE.Scene;
+    private terrainScene: THREE.Scene;
     private lightingScene: THREE.Scene;
+    private accelerationScene: THREE.Scene;
+    private advectionScene: THREE.Scene;
+    private projectionScene: THREE.Scene;
     private compositeScene: THREE.Scene;
     private screenScene: THREE.Scene;
-
 
     constructor(
         sceneWidth: number,
@@ -67,16 +73,21 @@ export class RenderingPipeline {
             100
         );
 
-        // Initialize render targets
         this.backgroundTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-        this.gBuffer = this.createGBuffer(sceneWidth, sceneHeight);
+        this.gBuffer = this.createMRT(sceneWidth, sceneHeight, 6);
         this.lightingTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+        this.fBuffer = this.createMRT(sceneWidth, sceneHeight, 2);
+        this.accelerationTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+        this.advectionTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+        this.projectionTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
         this.compositeTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
 
-        // Initialize scenes
         this.backgroundScene = new THREE.Scene();
-        this.geometryScene = new THREE.Scene();
+        this.terrainScene = new THREE.Scene();
         this.lightingScene = new THREE.Scene();
+        this.accelerationScene = new THREE.Scene();
+        this.advectionScene = new THREE.Scene();
+        this.projectionScene = new THREE.Scene();
         this.compositeScene = new THREE.Scene();
         this.screenScene = new THREE.Scene();
 
@@ -118,7 +129,60 @@ export class RenderingPipeline {
         const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.lightingMaterial);
         this.lightingScene.add(lightingQuad);
 
-        // Composite Pass
+        const accelerationUniforms = {
+            screenWidth: { value: sceneWidth },
+            screenHeight: { value: sceneHeight },
+            hydraulicsMap: { value: this.gBuffer.textures[5] },
+            flowMap: { value: this.fBuffer.textures[0]},
+        }
+
+        const accelerationMaterial = new THREE.ShaderMaterial({
+            uniforms: accelerationUniforms,
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: accelerationFragmentShader
+        });
+        
+        const accelerationQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), accelerationMaterial);
+        this.lightingScene.add(accelerationQuad);
+
+        const advectionUniforms = {
+            screenWidth: { value: sceneWidth },
+            screenHeight: { value: sceneHeight },
+            hydraulicsMap: { value: this.gBuffer.textures[5] },
+            flowMap: { value: this.fBuffer.textures[0] },
+            matterMap: { value: this.fBuffer.textures[1] }
+        }
+
+        const advectionMaterial = new THREE.ShaderMaterial({
+            uniforms: advectionUniforms,
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: accelerationFragmentShader
+        });
+        
+        const advectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), advectionMaterial);
+        this.lightingScene.add(advectionQuad);
+
+        const projectionUniforms = {
+            screenWidth: { value: sceneWidth },
+            screenHeight: { value: sceneHeight },
+            hydraulicsMap: { value: this.gBuffer.textures[5] },
+
+            flowMap: { value: this.fBuffer.textures[0] },
+            matterMap: { value: this.fBuffer.textures[1] }
+        }
+
+        const projectionMaterial = new THREE.ShaderMaterial({
+            uniforms: advectionUniforms,
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: accelerationFragmentShader
+        });
+        
+        const projectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), projectionMaterial);
+        this.lightingScene.add(projectionQuad);
+
         const compositeUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
@@ -136,7 +200,6 @@ export class RenderingPipeline {
         const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), compositeMaterial);
         this.compositeScene.add(compositeQuad);
 
-        // Screen Pass
         const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
             map: Object.assign(this.compositeTarget.texture, {
                 minFilter: THREE.NearestFilter,
@@ -158,9 +221,9 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.backgroundTarget);
         this.renderer.render(this.backgroundScene, this.camera);
 
-        // Geometry Pass
+        // Terrain Pass
         this.renderer.setRenderTarget(this.gBuffer);
-        this.renderer.render(this.geometryScene, this.camera);
+        this.renderer.render(this.terrainScene, this.camera);
 
         // Lighting Pass
         // Update light uniforms explicitly each frame
@@ -180,6 +243,8 @@ export class RenderingPipeline {
     
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
+
+        this.renderer.setRenderTarget(this.accelerationTarget);
 
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
@@ -222,7 +287,7 @@ export class RenderingPipeline {
         }
 
         if (entity instanceof ForegroundEntity) {
-            this.geometryScene.add(entity.getMesh()!);
+            this.terrainScene.add(entity.getMesh()!);
             console.log(entity.getMesh()!.position)
         } else if (entity instanceof BackgroundEntity) {
             this.backgroundScene.add(entity.getMesh()!);
@@ -234,7 +299,7 @@ export class RenderingPipeline {
         if (entity.getMesh() != null) {
 
             if (entity instanceof ForegroundEntity) {
-                this.geometryScene.remove(entity.getMesh()!);
+                this.terrainScene.remove(entity.getMesh()!);
             } else if (entity instanceof BackgroundEntity) {
                 this.backgroundScene.remove(entity.getMesh()!);
             }
@@ -299,11 +364,11 @@ export class RenderingPipeline {
         return new THREE.Vector3(v.x, v.y, v.z);
     }
 
-    private createGBuffer(width: number, height: number): THREE.WebGLRenderTarget {
+    private createMRT(width: number, height: number, numTargets: number): THREE.WebGLRenderTarget {
         return new THREE.WebGLRenderTarget(width, height, {
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
-            count: 5
+            count: numTargets
         });
     }
 
