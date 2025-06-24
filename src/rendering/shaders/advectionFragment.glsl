@@ -19,7 +19,7 @@ float overRelaxation = 2.0;
 
 vec4 matter;
 
-float NORMALIZATION_FACTOR = 100.0
+float NORMALIZATION_FACTOR = 1.0
 float dT = 1.0 / 60.0;
 
 
@@ -76,7 +76,7 @@ vec2 advectVelocity() {
 }
 
 float encodeDivergence(float divergence) {
-    return 2.0 * ((divergence / 100.0) + 1.0);
+    return 2.0 * ((divergence / NORMALIZATION_FACTOR) + 1.0);
 }
 
 float calculateDivergence() {

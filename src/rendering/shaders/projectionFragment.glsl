@@ -14,6 +14,7 @@ uniform sampler2D matterMap;
 
 out vec4 fragColor;
 
+float NORMALIZATION_FACTOR = 1.0;
 float overRelaxation = 2.0;
 
 vec4 matter;
@@ -23,7 +24,7 @@ vec2 toUV(vec3 worldPos) {
 }
 
 float normalizeDivergence(float divergence) {
-    return ((divergence * 2.0) - 1.0) * 100.0;
+    return ((divergence * 2.0) - 1.0) * NORMALIZATION_FACTOR;
 }
 
 vec2 applyProjection() {

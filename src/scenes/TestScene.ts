@@ -20,6 +20,12 @@ export class TestScene extends Scene {
 
         this.addLayer(lightLayer);
 
+        const fluids = new PassiveEntity('test_fluid');
+        const fluidLayer = new Layer('fluid_layer', -10);
+        fluidLayer.addEntity(fluids, 0, 0);
+
+        this.addLayer(fluidLayer);
+
         const goldBar = new PassiveEntity('lotus');
         const goldLayer = new Layer('gold_layer', -20);
         goldLayer.addEntity(goldBar, 0, -30);

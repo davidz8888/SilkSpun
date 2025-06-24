@@ -14,7 +14,7 @@ uniform sampler2D flowMap;
 layout(location = 0) out vec4 fragColor0; // Flow
 layout(location = 1) out vec4 fragColor1; // Matter
 
-float NORMALIZATION_FACTOR = 100.0
+float NORMALIZATION_FACTOR = 1.0
 
 vec2 toUV(vec3 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
@@ -42,9 +42,9 @@ vec2 calculateVelocities() {
     vec2 posLeft = vec2(v_positionWorld.x - 1.0, v_positionWorld.y);
     vec2 posUp = vec2(v_positionWorld.x, v_positionWorld.y - 1.0);
 
-    float solidityCenter = texture(hydraulicsMap, toUV(posCenter));
-    float solidityLeft = texture(hydraulicsMap, toUV(posLeft));
-    float solidityDown = texture(hydraulicsMap, toUV(posDown));
+    float solidityCenter = texture(hydraulicsMap, toUV(posCenter)).b;
+    float solidityLeft = texture(hydraulicsMap, toUV(posLeft)).b;
+    float solidityDown = texture(hydraulicsMap, toUV(posDown)).b;
 
     cellVelocity.x = (cellVelocity.x + cellAcceleration.x) * (solidityCenter * solidityLeft);
     cellVelocity.y = (cellVelocity.y + cellAcceleration.y) * (solidityCenter * solidityRight);

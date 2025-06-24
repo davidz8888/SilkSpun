@@ -17,12 +17,13 @@ void main() {
 
     vec4 backgroundInfo = texture(background, v_uv);
     vec4 foregroundInfo = texture(foreground, v_uv);
+    vec4 fluidInfo = texture(fluidMatter, v_uv);
 
-    float alpha = foregroundInfo.a;
+    vec3 solidsColor = (foregroundInfo.a * foregroundInfo.rgb) + ((1.0 - foregroundInfo.a) * backgroundInfo.rgb);
+    vec3 combinedColor = (fluidInfo.a * fluidInfo.rgb) + ((1.0 - fluidInfo.a) * solidsColor);
+    
 
-    vec3 combinedColor = (alpha * foregroundInfo.rgb) + ((1.0 - alpha) * backgroundInfo.rgb);
-
-    fragColor = vec4(combinedColor, backgroundInfo.a + alpha);
+    fragColor = vec4(combinedColor, backgroundInfo.a + foregroundInfo.a + fluidInfo.a);
 
     // fragColor = vec4(1, 1, 0, 1);
 
