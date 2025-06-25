@@ -19,7 +19,7 @@ float overRelaxation = 2.0;
 
 vec4 matter;
 
-float NORMALIZATION_FACTOR = 1.0
+float NORMALIZATION_FACTOR = 1.0;
 float dT = 1.0 / 60.0;
 
 
@@ -109,11 +109,11 @@ float calculateDivergence() {
     return encodeDivergence(divergence * overRelaxation / neighbourSolidity);
 }
 
-main() {
+void main() {
     
     vec2 cellVelocity = advectVelocity();
     vec4 matter = advectMatter();
 
     fragColor0 = advectVelocity();
-    fragColor1 = advectMatter()
+    fragColor1 = matter;
 }

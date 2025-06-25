@@ -11,6 +11,7 @@ uniform sampler2D heightMap;
 uniform sampler2D specularMap;
 uniform sampler2D shininessMap;
 uniform sampler2D hydraulicsMap;
+uniform sampler2D emissionsMap;
 
 layout(location = 0) out vec4 fragColor0; // Albedo
 layout(location = 1) out vec4 fragColor1; // Normals
@@ -18,6 +19,8 @@ layout(location = 2) out vec4 fragColor2; // Height
 layout(location = 3) out vec4 fragColor3; // Specular
 layout(location = 4) out vec4 fragColor4; // shininess
 layout(location = 5) out vec4 fragColor5; // hydraulics
+layout(location = 6) out vec4 fragColor6; // emissions
+
 
 void main() {
     vec4 albedo = texture(albedoMap, v_uv);
@@ -28,6 +31,7 @@ void main() {
     vec4 specular = texture(specularMap, v_uv);
     vec4 shininess = texture(shininessMap, v_uv);
     vec4 hydraulics = texture(hydraulicsMap, v_uv);
+    vec4 emissions = texture(emissionsMap, v_uv);
 
     fragColor0 = albedo;
     fragColor1 = normal;
@@ -35,5 +39,6 @@ void main() {
     fragColor3 = specular;
     fragColor4 = shininess;
     fragColor5 = hydraulics;
+    fragColor6 = emissions;
     
 }

@@ -73,7 +73,7 @@ export class RenderingPipeline {
         );
 
         this.backgroundTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-        this.gBuffer = this.createMRT(sceneWidth, sceneHeight, 6);
+        this.gBuffer = this.createMRT(sceneWidth, sceneHeight, 7);
         this.lightingTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
         this.hydraulicsTarget = this.createMRT(sceneWidth, sceneHeight, 2);
         this.advectionTarget = this.createMRT(sceneWidth, sceneHeight, 2);
@@ -131,7 +131,9 @@ export class RenderingPipeline {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
-            flowMap: { value: this.projectionTarget.textures[0]},
+            emissionsMap: { value: this.gBuffer.textures[6] },
+            flowMap: { value: this.projectionTarget.textures[0] },
+            matterMap: { value: this.projectionTarget.textures[1] }
         }
 
         const hydraulicsMaterial = new THREE.ShaderMaterial({
@@ -166,7 +168,6 @@ export class RenderingPipeline {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
-
             flowMap: { value: this.advectionTarget.textures[0] },
             matterMap: { value: this.advectionTarget.textures[1] }
         }
@@ -186,7 +187,7 @@ export class RenderingPipeline {
             screenHeight: { value: sceneHeight },
             background: { value: this.backgroundTarget.texture },
             foreground: { value: this.lightingTarget.texture },
-            fluidMatter: { value: this.projectionTarget.textures[1]}
+            fluidMatter: { value: this.projectionTarget.textures[1] }
         };
 
         const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
@@ -244,6 +245,13 @@ export class RenderingPipeline {
         this.renderer.render(this.lightingScene, this.camera);
 
         this.renderer.setRenderTarget(this.hydraulicsTarget);
+        this.renderer.render(this.hydraulicsScene, this.camera);
+
+        this.renderer.setRenderTarget(this.advectionTarget);
+        this.renderer.render(this.advectionScene, this.camera);
+
+        this.renderer.setRenderTarget(this.projectionTarget);
+        this.renderer.render(this.projectionScene, this.camera);
 
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);

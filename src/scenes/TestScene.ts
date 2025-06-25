@@ -32,17 +32,17 @@ export class TestScene extends Scene {
 
         this.addLayer(goldLayer);
 
-        const testFloor = new PassiveEntity('test_floor');
-        const floorLayer = new Layer('floor_layer', -40);
-        floorLayer.addEntity(testFloor, 0, 0);
+        // const testFloor = new PassiveEntity('test_floor');
+        // const floorLayer = new Layer('floor_layer', -40);
+        // floorLayer.addEntity(testFloor, 0, 0);
 
-        this.addLayer(floorLayer);
+        // this.addLayer(floorLayer);
 
-        const testWall = new PassiveEntity('test_wall');
-        const wallLayer = new Layer('wall_layer', -50);
-        wallLayer.addEntity(testWall, 0, 0);
+        // const testWall = new PassiveEntity('test_wall');
+        // const wallLayer = new Layer('wall_layer', -50);
+        // wallLayer.addEntity(testWall, 0, 0);
 
-        this.addLayer(wallLayer);
+        // this.addLayer(wallLayer);
     }
 
 }

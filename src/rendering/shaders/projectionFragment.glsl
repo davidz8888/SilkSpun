@@ -12,7 +12,8 @@ uniform sampler2D hydraulicsMap;
 uniform sampler2D flowMap;
 uniform sampler2D matterMap;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor0; // Flow
+layout(location = 1) out vec4 fragColor1; // Matter
 
 float NORMALIZATION_FACTOR = 1.0;
 float overRelaxation = 2.0;
@@ -29,7 +30,7 @@ float normalizeDivergence(float divergence) {
 
 vec2 applyProjection() {
 
-    vec2 centerPos = vec2(v_positionWorld.xy);
+    vec2 centerPos = vec2(v_positionWorld.x, v_positionWorld.y);
     vec2 leftPos = vec2(centerPos.x - 1.0, centerPos.y);
     vec2 rightPos = vec2(centerPos.x + 1.0, centerPos.y);
     vec2 upPos = vec2(centerPos.x, centerPos.y + 1.0);
@@ -39,18 +40,18 @@ vec2 applyProjection() {
     vec2 leftUV = toUV(leftPos);
     vec2 rightUV = toUV(rightPos);
     vec2 upUV = toUV(upPos);
-    vec2 downUV = toUV(downUV);
+    vec2 downUV = toUV(downPos);
 
-    vec4 flowCenter = texture(flowMap, centerUV)
+    vec4 flowCenter = texture(flowMap, centerUV);
     vec4 flowLeft = texture(flowMap, leftUV);
     vec4 flowRight = texture(flowMap, rightUV);
     vec4 flowUp = texture(flowMap, upUV);
     vec4 flowDown = texture(flowMap, downUV);
 
-    float solidityLeft = texture(hydraulicsMap.b, leftUV);
-    float solidityRight = texture(hydraulicsMap.b, rightUV);
-    float solidityUp = texture(hydraulicsMap.b, upUV);
-    float solidityDown = texture(hydraulicsMap.b, downUV);
+    float solidityLeft = texture(hydraulicsMap, leftUV).b;
+    float solidityRight = texture(hydraulicsMap, rightUV).b;
+    float solidityUp = texture(hydraulicsMap, upUV).b;
+    float solidityDown = texture(hydraulicsMap, downUV).b;
 
     float divergenceCenter = normalizeDivergence(flowCenter.b);
     float divergenceLeft = normalizeDivergence(flowLeft.b);
@@ -70,7 +71,11 @@ vec2 applyProjection() {
     return vec2(velocityLeft, velocityDown);
 }
 
-main() {
+void main() {
     vec2 cellVelocity = applyProjection();
-    fragColor = vec4(cellVelocity.x, cellVelocity.y, 0.0, 0.0);
+    vec4 matter = texture(matterMap, v_uv);
+
+    fragColor0 = vec4(cellVelocity.x, cellVelocity.y, 0.0, 0.0);
+    // fragColor1 = matter;
+    fragColor1 = vec4(1.0);
 }
