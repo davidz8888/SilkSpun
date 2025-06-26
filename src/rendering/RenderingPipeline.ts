@@ -62,6 +62,8 @@ export class RenderingPipeline {
         this.renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
         this.renderer.setSize(sceneWidth, sceneHeight);
         this.renderer.autoClear = false;
+        this.renderer.clear();
+        this.renderer.toneMapping = THREE.NoToneMapping;
         document.body.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.OrthographicCamera(
@@ -76,9 +78,9 @@ export class RenderingPipeline {
         this.backgroundTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
         this.gBuffer = this.createMRT(sceneWidth, sceneHeight, 7);
         this.lightingTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-        this.hydraulicsTarget = this.createMRT(sceneWidth, sceneHeight, 2);
-        this.advectionTarget = this.createMRT(sceneWidth, sceneHeight, 2);
-        this.projectionTarget = this.createMRT(sceneWidth, sceneHeight, 2);
+        this.hydraulicsTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
+        this.advectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
+        this.projectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.compositeTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
 
         this.backgroundScene = new THREE.Scene();
@@ -378,6 +380,17 @@ export class RenderingPipeline {
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
             count: numTargets
+        });
+    }
+
+    private createFloatMRT(width: number, height: number, numTargets: number): THREE.WebGLRenderTarget {
+        return new THREE.WebGLRenderTarget(width, height, {
+            type: THREE.FloatType,
+            format: THREE.RGBAFormat,
+            minFilter: THREE.NearestFilter,
+            magFilter: THREE.NearestFilter,
+            count: numTargets,
+            depthBuffer: false,
         });
     }
 

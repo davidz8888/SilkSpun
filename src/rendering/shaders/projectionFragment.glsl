@@ -53,13 +53,13 @@ vec2 applyProjection() {
     float solidityLeft = normalizeSolidity(texture(hydraulicsMap, leftUV).b);
     float solidityDown = normalizeSolidity(texture(hydraulicsMap, downUV).b);
 
-    float divergenceCenter = normalizeInfo(flowCenter.b);
-    float divergenceLeft = normalizeInfo(flowLeft.b);
-    float divergenceDown = normalizeInfo(flowDown.b);
+    float divergenceCenter = flowCenter.b;
+    float divergenceLeft = flowLeft.b;
+    float divergenceDown = flowDown.b;
 
     // Each cell stores only its left and down velocities to avoid doubling
-    float velocityLeft = normalizeInfo(flowCenter.r);
-    float velocityDown = normalizeInfo(flowCenter.g);
+    float velocityLeft = flowCenter.r;
+    float velocityDown = flowCenter.g;
 
     velocityLeft += (divergenceCenter - divergenceLeft) * (solidityCenter * solidityLeft);
     velocityDown += (divergenceCenter - divergenceDown) * (solidityCenter * solidityDown);
@@ -68,13 +68,15 @@ vec2 applyProjection() {
 }
 
 void main() {
+
+    if (texture(hydraulicsMap, v_uv).b == 1.0) {
+        discard;
+    }
+    
     vec4 flow = texture(flowMap, v_uv);
     vec2 cellVelocity = applyProjection();
-    cellVelocity.x = encodeInfo(cellVelocity.x);
-    cellVelocity.y = encodeInfo(cellVelocity.y);
     vec4 matter = texture(matterMap, v_uv);
 
     fragColor0 = vec4(cellVelocity.x, cellVelocity.y, flow.b, flow.a);
     fragColor1 = matter;
-    // fragColor1 = vec4(1.0);
 }

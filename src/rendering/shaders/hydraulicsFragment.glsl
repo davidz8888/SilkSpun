@@ -39,8 +39,6 @@ float normalizeSolidity(float solidity) {
 vec2 calculateVelocities() {
     
     vec2 cellVelocity = texture(flowMap, v_uv).xy;
-    cellVelocity.x = normalizeInfo(cellVelocity.x);
-    cellVelocity.y = normalizeInfo(cellVelocity.y);
 
     vec2 cellAcceleration = texture(hydraulicsMap, v_uv).xy;
     cellAcceleration.x = normalizeInfo(cellAcceleration.x);
@@ -85,16 +83,20 @@ vec4 calculateEmissions() {
 }
 
 void main() {
+
+    if (texture(hydraulicsMap, v_uv).b == 1.0) {
+        fragColor0 = vec4(0.0);
+        fragColor1 = vec4(0.0);
+    }
+    
     vec4 hydraulics = texture(hydraulicsMap, v_uv);
     vec4 flow = texture(flowMap, v_uv);
-    vec2 cellVelocity = calculateVelocities();
-    cellVelocity.x = encodeInfo(cellVelocity.x);
-    cellVelocity.y = encodeInfo(cellVelocity.y);
+    // vec2 cellVelocity = calculateVelocities();
+
     // vec2 cellVelocity = vec2(1.0);
-    // vec2 cellVelocity = debugVelocities();
+    vec2 cellVelocity = debugVelocities();
     
 
     fragColor0 = vec4(cellVelocity.x, cellVelocity.y, flow.b, flow.a);
     fragColor1 = calculateEmissions();
-    // fragColor1 = hydraulics;
 }

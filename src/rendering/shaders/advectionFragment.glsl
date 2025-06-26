@@ -67,8 +67,7 @@ float normalizeSolidity(float solidity) {
 vec4 advectMatter() {
 
     vec2 cellVelocity = texture(flowMap, v_uv).xy; 
-    cellVelocity.x = normalizeInfo(cellVelocity.x);
-    cellVelocity.y = normalizeInfo(cellVelocity.y);
+
 
     float lastX = v_positionWorld.x - (dT * cellVelocity.x);
     float lastY = v_positionWorld.y - (dT * cellVelocity.y);
@@ -82,8 +81,7 @@ vec4 advectMatter() {
 vec2 advectVelocity() {
 
     vec2 cellVelocity = texture(flowMap, v_uv).xy; 
-    cellVelocity.x = normalizeInfo(cellVelocity.x);
-    cellVelocity.y = normalizeInfo(cellVelocity.y);
+
 
     float lastX = v_positionWorld.x - (dT * cellVelocity.x);
     float lastY = v_positionWorld.y - (dT * cellVelocity.y);
@@ -94,6 +92,9 @@ vec2 advectVelocity() {
     return texture(flowMap, lastUV).xy;
 }
 
+vec2 debugVelocity() {
+    return vec2(0.0);
+}
 
 float calculateDivergence() {
 
@@ -109,10 +110,10 @@ float calculateDivergence() {
     vec2 upUV = toUV(upPos);
     vec2 downUV = toUV(downPos);
 
-    float velocityLeft = normalizeInfo(texture(flowMap, currUV).r);
-    float velocityRight = normalizeInfo(texture(flowMap, rightUV).r);
-    float velocityUp = normalizeInfo(texture(flowMap, upUV).g);
-    float velocityDown = normalizeInfo(texture(flowMap, currUV).g);
+    float velocityLeft = texture(flowMap, currUV).r;
+    float velocityRight = texture(flowMap, rightUV).r;
+    float velocityUp = texture(flowMap, upUV).g;
+    float velocityDown = texture(flowMap, currUV).g;
 
     float solidityLeft = normalizeSolidity(texture(hydraulicsMap, leftUV).b);
     float solidityRight = normalizeSolidity(texture(hydraulicsMap, rightUV).b);
@@ -126,16 +127,21 @@ float calculateDivergence() {
 }
 
 void main() {
+
+    if (texture(hydraulicsMap, v_uv).b == 1.0) {
+        fragColor0 = vec4(0.0);
+        fragColor1 = vec4(0.0);
+    }
     
-    vec2 cellVelocity = advectVelocity();
-    cellVelocity.x = encodeInfo(cellVelocity.x);
-    cellVelocity.y = encodeInfo(cellVelocity.y);
-    float divergence = encodeInfo(calculateDivergence());
+    // vec2 cellVelocity = advectVelocity();
+    vec2 cellVelocity = debugVelocity();
+
+    float divergence = calculateDivergence();
     vec4 flow = texture(flowMap, v_uv);
 
     vec4 matter = advectMatter();
 
     fragColor0 = vec4(cellVelocity.x, cellVelocity.y, divergence, flow.a);
     fragColor1 = matter;
-    // fragColor1 = vec4(1.0)
+    // fragColor1 = vec4(1.0);
 }
