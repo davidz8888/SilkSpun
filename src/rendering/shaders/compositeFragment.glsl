@@ -9,22 +9,28 @@ uniform float screenHeight;
 
 uniform sampler2D background; 
 uniform sampler2D foreground;
-uniform sampler2D fluidMatter;
+uniform sampler2D flowMap;
+uniform sampler2D matterMap;
+
 
 out vec4 fragColor;
 
 void main() {
 
-    vec4 backgroundInfo = texture(background, v_uv);
-    vec4 foregroundInfo = texture(foreground, v_uv);
-    vec4 fluidInfo = texture(fluidMatter, v_uv);
+    vec4 background = texture(background, v_uv);
+    vec4 foreground = texture(foreground, v_uv);
+    vec4 flow = texture(flowMap, v_uv);
+    vec4 matter = texture(matterMap, v_uv);
 
-    vec3 solidsColor = (foregroundInfo.a * foregroundInfo.rgb) + ((1.0 - foregroundInfo.a) * backgroundInfo.rgb);
-    vec3 combinedColor = (fluidInfo.a * fluidInfo.rgb) + ((1.0 - fluidInfo.a) * solidsColor);
+    vec3 solidsColor = (foreground.a * foreground.rgb) + ((1.0 - foreground.a) * background.rgb);
+    vec3 combinedColor = (matter.a * matter.rgb) + ((1.0 - matter.a) * solidsColor);
     
 
-    fragColor = vec4(combinedColor, backgroundInfo.a + foregroundInfo.a + fluidInfo.a);
+    // fragColor = vec4(combinedColor, background.a + foreground.a + matter.a);
+ 
+    // fragColor = vec4(flow.g);
+    fragColor = matter;
+    // fragColor = flow;
 
-    // fragColor = vec4(1, 1, 0, 1);
-
+    // fragColor = vec4(flow.b);
 }

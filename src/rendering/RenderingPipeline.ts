@@ -61,6 +61,7 @@ export class RenderingPipeline {
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
         this.renderer.setSize(sceneWidth, sceneHeight);
+        this.renderer.autoClear = false;
         document.body.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.OrthographicCamera(
@@ -187,7 +188,8 @@ export class RenderingPipeline {
             screenHeight: { value: sceneHeight },
             background: { value: this.backgroundTarget.texture },
             foreground: { value: this.lightingTarget.texture },
-            fluidMatter: { value: this.projectionTarget.textures[1] }
+            flowMap: {  value: this.projectionTarget.textures[0] },
+            matterMap: { value: this.projectionTarget.textures[1] }
         };
 
         const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({

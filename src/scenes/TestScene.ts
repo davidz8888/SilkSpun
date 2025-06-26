@@ -14,11 +14,11 @@ export class TestScene extends Scene {
         super()
 
 
-        const moveableLight = new MoveableLight('transparent');
-        const lightLayer = new Layer('light_layer', 0);
-        lightLayer.addEntity(moveableLight, 0, 0);
+        // const moveableLight = new MoveableLight('transparent');
+        // const lightLayer = new Layer('light_layer', 0);
+        // lightLayer.addEntity(moveableLight, 0, 0);
 
-        this.addLayer(lightLayer);
+        // this.addLayer(lightLayer);
 
         const fluids = new PassiveEntity('test_fluid');
         const fluidLayer = new Layer('fluid_layer', -10);
@@ -26,11 +26,11 @@ export class TestScene extends Scene {
 
         this.addLayer(fluidLayer);
 
-        const goldBar = new PassiveEntity('lotus');
-        const goldLayer = new Layer('gold_layer', -20);
-        goldLayer.addEntity(goldBar, 0, -30);
+        // const goldBar = new PassiveEntity('lotus');
+        // const goldLayer = new Layer('gold_layer', -20);
+        // goldLayer.addEntity(goldBar, 0, -30);
 
-        this.addLayer(goldLayer);
+        // this.addLayer(goldLayer);
 
         // const testFloor = new PassiveEntity('test_floor');
         // const floorLayer = new Layer('floor_layer', -40);
