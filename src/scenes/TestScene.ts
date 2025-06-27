@@ -14,35 +14,35 @@ export class TestScene extends Scene {
         super()
 
 
-        // const moveableLight = new MoveableLight('transparent');
-        // const lightLayer = new Layer('light_layer', 0);
-        // lightLayer.addEntity(moveableLight, 0, 0);
+        const moveableLight = new MoveableLight('transparent');
+        const lightLayer = new Layer('light_layer', 0);
+        lightLayer.addEntity(moveableLight, 0, 0);
 
-        // this.addLayer(lightLayer);
+        this.addLayer(lightLayer);
 
-        const fluids = new PassiveEntity('test_fluid');
-        const fluidLayer = new Layer('fluid_layer', -10);
-        fluidLayer.addEntity(fluids, 0, 0);
+        // const fluids = new PassiveEntity('test_fluid');
+        // const fluidLayer = new Layer('fluid_layer', -10);
+        // fluidLayer.addEntity(fluids, 0, 0);
 
-        this.addLayer(fluidLayer);
+        // this.addLayer(fluidLayer);
 
-        // const goldBar = new PassiveEntity('lotus');
-        // const goldLayer = new Layer('gold_layer', -20);
-        // goldLayer.addEntity(goldBar, 0, -30);
+        const goldBar = new PassiveEntity('lotus');
+        const goldLayer = new Layer('gold_layer', -20);
+        goldLayer.addEntity(goldBar, 0, -30);
 
-        // this.addLayer(goldLayer);
+        this.addLayer(goldLayer);
 
-        // const testFloor = new PassiveEntity('test_floor');
-        // const floorLayer = new Layer('floor_layer', -40);
-        // floorLayer.addEntity(testFloor, 0, 0);
+        const testFloor = new PassiveEntity('test_floor');
+        const floorLayer = new Layer('floor_layer', -40);
+        floorLayer.addEntity(testFloor, 0, 0);
 
-        // this.addLayer(floorLayer);
+        this.addLayer(floorLayer);
 
-        // const testWall = new PassiveEntity('test_wall');
-        // const wallLayer = new Layer('wall_layer', -50);
-        // wallLayer.addEntity(testWall, 0, 0);
+        const testWall = new PassiveEntity('test_wall');
+        const wallLayer = new Layer('wall_layer', -50);
+        wallLayer.addEntity(testWall, 0, 0);
 
-        // this.addLayer(wallLayer);
+        this.addLayer(wallLayer);
     }
 
 }

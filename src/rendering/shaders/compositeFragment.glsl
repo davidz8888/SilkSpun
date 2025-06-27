@@ -25,11 +25,11 @@ void main() {
     vec3 solidsColor = (foreground.a * foreground.rgb) + ((1.0 - foreground.a) * background.rgb);
     vec3 combinedColor = (matter.a * matter.rgb) + ((1.0 - matter.a) * solidsColor);
     
-    // fragColor = vec4(solidsColor.r, solidsColor.g, solidsColor.b, 1.0);
+    fragColor = vec4(solidsColor.r, solidsColor.g, solidsColor.b, 1.0);
     // fragColor = vec4(combinedColor, background.a + foreground.a + matter.a);
  
     // fragColor = vec4(flow.b);
-    fragColor = flow;
+    // fragColor = flow;
     // fragColor = matter;
     // fragColor = vec4(-flow.r);
 
