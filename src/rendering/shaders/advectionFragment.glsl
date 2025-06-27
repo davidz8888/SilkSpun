@@ -15,7 +15,7 @@ uniform sampler2D matterMap;
 layout(location = 0) out vec4 fragColor0; // Flow
 layout(location = 1) out vec4 fragColor1; // Matter
 
-float OVER_RELAXATION = 1.0;
+float OVER_RELAXATION = 2.0;
 
 vec4 matter;
 
@@ -69,8 +69,8 @@ vec4 advectMatter() {
     vec2 cellVelocity = texture(flowMap, v_uv).xy; 
 
 
-    float lastX = v_positionWorld.x - (dT * cellVelocity.x);
-    float lastY = v_positionWorld.y - (dT * cellVelocity.y);
+    float lastX = v_positionWorld.x - (dT * cellVelocity.x * OVER_RELAXATION);
+    float lastY = v_positionWorld.y - (dT * cellVelocity.y * OVER_RELAXATION);
     vec2 lastPos = vec2(lastX, lastY);
 
     vec2 lastUV = toUV(lastPos);
@@ -83,8 +83,8 @@ vec2 advectVelocity() {
     vec2 cellVelocity = texture(flowMap, v_uv).xy; 
 
 
-    float lastX = v_positionWorld.x - (dT * cellVelocity.x);
-    float lastY = v_positionWorld.y - (dT * cellVelocity.y);
+    float lastX = v_positionWorld.x - (dT * cellVelocity.x * OVER_RELAXATION);
+    float lastY = v_positionWorld.y - (dT * cellVelocity.y * OVER_RELAXATION);
     vec2 lastPos = vec2(lastX, lastY);
 
     vec2 lastUV = toUV(lastPos);
@@ -128,20 +128,22 @@ float calculateDivergence() {
 
 void main() {
 
-    if (texture(hydraulicsMap, v_uv).b == 1.0) {
-        fragColor0 = vec4(0.0);
-        fragColor1 = vec4(0.0);
-    }
+    // if (texture(hydraulicsMap, v_uv).b == 1.0) {
+    //     fragColor0 = vec4(0.0);
+    //     fragColor1 = vec4(0.0);
+    // }
     
     // vec2 cellVelocity = advectVelocity();
-    vec2 cellVelocity = debugVelocity();
+    // vec2 cellVelocity = debugVelocity();
 
     float divergence = calculateDivergence();
     vec4 flow = texture(flowMap, v_uv);
 
     vec4 matter = advectMatter();
 
-    fragColor0 = vec4(cellVelocity.x, cellVelocity.y, divergence, flow.a);
+    // fragColor0 = vec4(cellVelocity.x, cellVelocity.y, divergence, flow.a);
     fragColor1 = matter;
-    // fragColor1 = vec4(1.0);
+
+    fragColor0 = texture(flowMap, v_uv);
+    // fragColor1 = texture(matterMap, v_uv);
 }

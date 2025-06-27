@@ -28,10 +28,13 @@ void main() {
     // fragColor = vec4(solidsColor.r, solidsColor.g, solidsColor.b, 1.0);
     // fragColor = vec4(combinedColor, background.a + foreground.a + matter.a);
  
+
+    float OVER_RELAXATION = 2.0;
+    float dT = 1.0 / 60.0;
     // fragColor = vec4(flow.b);
     // fragColor = flow;
+    // fragColor = ((matter + flow) * OVER_REAXATION * dT) - 5.0;
     fragColor = matter;
-    // fragColor = vec4(-flow.r);
 
     // fragColor = vec4(flow.b);
 }
