@@ -344,33 +344,86 @@ vec3 infiniteLighting() {
 
     for (int i = 0; i < numInfiniteLightsInUse; i++) {
 
-        InfiniteLight light = infiniteLights[i];
-        vec3 fragPosition = vec3(v_positionWorld.xy, getZ(v_uv));
-
-        vec3 rayStep = light.direction;
-        float stepSize = 1.0;
+        vec3 fragPos = vec3(v_positionWorld.xy, getZ(v_uv));
+        vec3 lightDir = normalize(infiniteLights[i].direction);
         
         vec3 normal = normalize(texture(normalMap, v_uv).rgb * 2.0 - 1.0);
-        float normalFactor = max((dot(normal, normalize(rayStep))), 0.0);
+        float normalFactor = max((dot(normal, lightDir)), 0.0);
         if (normalFactor == 0.0) continue;
 
-        vec3 rayPosition = fragPosition;
-        float rayFactor = 1.0;
+        vec3 displacement = lightDir * infiniteLights[i].shadowDistance;
 
-        float rayStepDistance = stepSize * length(rayStep.xy);
+        // DDA Setup
+        vec2 step = sign(displacement.xy);
+        vec2 tStep;
+        vec2 tCurrBound;
+        vec2 currCell = fragPos.xy;
+        vec2 firstBound = currCell + step;
 
-        for (float j = 0.0; j < light.shadowDistance; j += rayStepDistance) {
-            
-            rayPosition += (stepSize * rayStep);
-            
-            float currZ = getZ(toUV(rayPosition));
-
-            rayFactor = (rayPosition.z < currZ) ? 0.0 : 1.0; 
-            if (rayFactor == 0.0) break;
-
+        if (lightDir.x  == 0.0) {
+            tStep.x = 1.0;
+            tCurrBound.x = 1.0;
+        } else {
+            tStep.x = abs(1.0 / displacement.x);
+            tCurrBound.x = abs((firstBound.x - fragPos.x) / displacement.x);
         }
 
-        totalLight += (normalFactor * rayFactor * light.color);
+        if (lightDir.y == 0.0) {
+            tStep.y = 1.0;
+            tCurrBound.y = 1.0;
+        } else {
+            tStep.y = abs(1.0 / displacement.y);
+            tCurrBound.y = abs((firstBound.y - fragPos.y) / displacement.y);
+        }
+    
+        bool occluded = false;
+        float t = 0.0;
+        vec2 currStep;
+
+        while (t < 1.0) {
+
+            // Step DDA
+            if (tCurrBound.x < tCurrBound.y) {
+                t = tCurrBound.x;
+                tCurrBound.x += tStep.x;
+                currStep = vec2(step.x, 0.0);
+
+            } else {
+
+                t = tCurrBound.y;
+                tCurrBound.y += tStep.y;
+                currStep = vec2(0.0, step.y);
+            }
+
+            vec3 rayCurrPos = mix(fragPos, fragPos + displacement, t);
+
+            // Check exiting current cell
+            if (simpleOcclusionCheck(rayCurrPos, currCell)) {
+                occluded = true;
+                break;
+            }
+
+            currCell += currStep;
+
+            // Check entering next cell
+            if (simpleOcclusionCheck(rayCurrPos, currCell)) {
+                occluded = true;
+                break;
+            }
+        }
+        if (occluded) continue;
+
+        vec3 albedo = texture(albedoMap, v_uv).rgb;
+        vec3 specular = texture(specularMap, v_uv).rgb;
+        float shininess = max(texture(shininessMap, v_uv).r * 20.0, 4.0);
+        vec3 lightColor = infiniteLights[i].color;
+        vec3 viewDir = normalize(-fragPos);
+
+        vec3 diffuseComponent = phongDiffuse(albedo, lightColor, lightDir, normal);
+        vec3 specularComponent = phongSpecular(specular, shininess, lightColor, lightDir, normal, viewDir);
+
+        float rayWeight = 1.0 / float(NUM_RAYS);
+        totalLight += rayWeight * (diffuseComponent + specularComponent);
     }
 
     return totalLight;
@@ -389,6 +442,6 @@ void main() {
 
     // fragColor = vec4(albedo.rgb * absorbedLight, albedo.a);
 
-    fragColor = vec4(pointLighting() + skyLighting(), 1.0);
+    fragColor = vec4(infiniteLighting() + skyLighting() + pointLighting(), 1.0);
     // fragColor = vec4(abs(skyLightDirections[0]), 1.0);
 }

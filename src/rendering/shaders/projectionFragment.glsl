@@ -70,7 +70,8 @@ vec2 applyProjection() {
 void main() {
 
     if (texture(hydraulicsMap, v_uv).b == 1.0) {
-        discard;
+        fragColor0 = vec4(0.0);
+        fragColor1 = vec4(0.0);
     }
     
     vec4 flow = texture(flowMap, v_uv);

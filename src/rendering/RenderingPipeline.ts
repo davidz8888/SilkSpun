@@ -219,7 +219,7 @@ export class RenderingPipeline {
 
     public render() {
 
-        // updateDayNight();
+        // LightingController.updateDayNight();
 
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);
