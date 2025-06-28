@@ -53,11 +53,7 @@ vec2 applyProjection() {
     velocityLeft += (divergenceCenter - divergenceLeft) * (solidityCenter * solidityLeft);
     velocityDown += (divergenceCenter - divergenceDown) * (solidityCenter * solidityDown);
 
-    // velocityLeft += divergenceCenter;
-    // velocityDown += divergenceCenter;
-
     return vec2(velocityLeft, velocityDown);
-    // return flowCenter.xy;
 }
 
 void main() {

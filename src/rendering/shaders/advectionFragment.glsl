@@ -54,7 +54,7 @@ vec2 backstep() {
 
     vec2 cellVelocity = texture(flowMap, v_uv).xy; 
     // return floor(v_positionWorld.xy) - (cellVelocity * dT * OVER_RELAXATION);
-    return v_positionWorld.xy - (cellVelocity * dT * OVER_RELAXATION);
+    return v_positionWorld.xy - (cellVelocity * dT);
 
 }
 

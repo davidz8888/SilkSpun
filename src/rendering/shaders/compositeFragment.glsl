@@ -33,7 +33,7 @@ void main() {
     float OVER_RELAXATION = 2.0;
     float dT = 1.0 / 60.0;
 
-    fragColor = abs(matter);
+    fragColor = vec4(flow.b);
     // fragColor = matter;
     // fragColor = ((matter + flow) * OVER_REAXATION * dT) - 5.0;
     // fragColor = matter + (flow / 10.0);

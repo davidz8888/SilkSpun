@@ -44,8 +44,8 @@ vec2 calculateVelocities() {
     float solidityLeft = texture(hydraulicsMap, UVLeft).b;
     float solidityDown = texture(hydraulicsMap, UVDown).b;
 
-    cellVelocity.x = (cellVelocity.x + (cellAcceleration.x * OVER_RELAXATION)) * (solidityCenter * solidityLeft);
-    cellVelocity.y = (cellVelocity.y + (cellAcceleration.y * OVER_RELAXATION)) * (solidityCenter * solidityDown);
+    cellVelocity.x = (cellVelocity.x + (cellAcceleration.x * dT )) * (solidityCenter * solidityLeft);
+    cellVelocity.y = (cellVelocity.y + (cellAcceleration.y * dT)) * (solidityCenter * solidityDown);
 
     return cellVelocity;
 }
