@@ -9,7 +9,6 @@ uniform float screenWidth;
 uniform float screenHeight;
 
 uniform sampler2D hydraulicsMap;
-uniform sampler2D emissionsMap;
 uniform sampler2D flowMap;
 uniform sampler2D matterMap;
 
@@ -21,51 +20,48 @@ float NORMALIZATION_FACTOR = 1.0;
 float OVER_RELAXATION = 2.0;
 float dT = 1.0 / 60.0;
 
-float EPSILON = 0.1; 
 
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
 }
 
-vec2 calculateVelocities() {
-    
+float calculateDivergence() {
+
     vec2 posCenter = v_positionWorld.xy;
     vec2 posLeft = posCenter + vec2(-1.0, 0.0);
+    vec2 posRight = posCenter + vec2(1.0, 0.0);
+    vec2 posUp = posCenter + vec2(0.0, 1.0);
     vec2 posDown = posCenter + vec2(0.0, -1.0);
 
     vec2 UVCenter = toUV(posCenter);
     vec2 UVLeft = toUV(posLeft);
+    vec2 UVRight = toUV(posRight);
+    vec2 UVUp = toUV(posUp);
     vec2 UVDown = toUV(posDown);
 
-    vec2 cellVelocity = texture(flowMap, UVCenter).xy;
-    vec2 cellAcceleration = texture(hydraulicsMap, UVCenter).xy;
+    float velocityLeft = texture(flowMap, UVCenter).r;
+    float velocityRight = texture(flowMap, UVRight).r;
+    float velocityUp = texture(flowMap, UVUp).g;
+    float velocityDown = texture(flowMap, UVCenter).g;
 
-    float solidityCenter = texture(hydraulicsMap, UVCenter).b;
     float solidityLeft = texture(hydraulicsMap, UVLeft).b;
+    float solidityRight = texture(hydraulicsMap, UVRight).b;
+    float solidityUp = texture(hydraulicsMap, UVUp).b;
     float solidityDown = texture(hydraulicsMap, UVDown).b;
 
-    cellVelocity.x = (cellVelocity.x + (cellAcceleration.x * OVER_RELAXATION)) * (solidityCenter * solidityLeft);
-    cellVelocity.y = (cellVelocity.y + (cellAcceleration.y * OVER_RELAXATION)) * (solidityCenter * solidityDown);
+    float divergence = -velocityLeft + velocityRight + velocityUp + -velocityDown;
+    float neighbourSolidity = solidityLeft + solidityRight + solidityUp + solidityDown;
 
-    return cellVelocity;
-}
-
-
-vec4 calculateEmissions() {
-    
-    vec4 matter = texture(matterMap, v_uv);
-    vec4 emission = texture(emissionsMap, v_uv);
-
-    matter += emission;
-
-    return matter;
+    float result = neighbourSolidity != 0.0 ? (divergence / neighbourSolidity) : 0.0;
+    return result;
 }
 
 void main() {
-    
+
     vec4 flow = texture(flowMap, v_uv);
-    flow.xy = calculateVelocities();
-    
+    flow.b = calculateDivergence();
+    vec4 matter = texture(matterMap, v_uv);    
+
     fragColor0 = flow;
-    fragColor1 = calculateEmissions();
+    fragColor1 = matter;
 }

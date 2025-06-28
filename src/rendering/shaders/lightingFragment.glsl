@@ -52,14 +52,6 @@ struct SkyLight {
 };
 uniform SkyLight skyLight;
 #define NUM_SKYLIGHTS 100
-// const vec3 skyLightDirections[NUM_SKYLIGHTS] = vec3[NUM_SKYLIGHTS](
-//     vec3(0.0, 1.0, 0.0),
-//     vec3(1.0, 1.0, 0.0),
-//     vec3(-1.0, 1.0, 0.0),
-//     vec3(0.0, 1.0, 1.0),
-//     vec3(0.333, 1.0, 0.333),
-//     vec3(-0.333, 1.0, 0.333)
-// );
 uniform vec3 skyLightDirections[NUM_SKYLIGHTS];
 
 
@@ -83,17 +75,10 @@ vec3 debugLight(PointLight light, float distance) {
     return (light.radius > distance) ? vec3(1.0) : vec3(0.0);
 }
 
-bool locationEquality(vec3 posA, vec3 posB, float epsilon) {
-    return length(posA - posB) < epsilon;
-}
-
 vec2 toUV(vec3 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
 }
 
-vec3 toUnitCube(vec3 v) {
-    return v / max(abs(v.x), abs(v.y));
-}
 
 float getZ(vec2 uv) {
     vec4 fragZInfo = texture(heightMap, uv);
@@ -101,7 +86,7 @@ float getZ(vec2 uv) {
     if (fragZInfo.b != 1.0) {
         return -100.0;
     } else {
-        return (fragZInfo.r * -100.0) + (fragZInfo.g * HEIGHT_SCALING);
+        return fragZInfo.r + (fragZInfo.g * HEIGHT_SCALING);
     }
 
 }

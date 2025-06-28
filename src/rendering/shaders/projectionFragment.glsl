@@ -17,41 +17,30 @@ layout(location = 1) out vec4 fragColor1; // Matter
 
 float NORMALIZATION_FACTOR = 1.0;
 
-vec4 matter;
+float OVER_RELAXATION = 2.0;
+float dT = 1.0 / 60.0;
 
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
 }
 
-float normalizeInfo(float info) {
-    return ((info * 2.0) - 1.0) * NORMALIZATION_FACTOR;
-}
-
-float encodeInfo(float info) {
-    return ((info / NORMALIZATION_FACTOR) + 1.0) / 2.0;
-}
-
-float normalizeSolidity(float solidity) {
-    return (solidity - 1.0) * -1.0;
-}
-
 vec2 applyProjection() {
 
-    vec2 centerPos = vec2(v_positionWorld.x, v_positionWorld.y);
-    vec2 leftPos = vec2(centerPos.x - 1.0, centerPos.y);
-    vec2 downPos = vec2(centerPos.x, centerPos.y - 1.0);
+    vec2 posCenter = v_positionWorld.xy;
+    vec2 posLeft = posCenter + vec2(-1.0, 0.0);
+    vec2 posDown = posCenter + vec2(0.0, -1.0);
 
-    vec2 centerUV = toUV(centerPos);
-    vec2 leftUV = toUV(leftPos);
-    vec2 downUV = toUV(downPos);
+    vec2 UVCenter = toUV(posCenter);
+    vec2 UVLeft = toUV(posLeft);
+    vec2 UVDown = toUV(posDown);
 
-    vec4 flowCenter = texture(flowMap, centerUV);
-    vec4 flowLeft = texture(flowMap, leftUV);
-    vec4 flowDown = texture(flowMap, downUV);
+    float solidityCenter = texture(hydraulicsMap, UVCenter).b;
+    float solidityLeft = texture(hydraulicsMap, UVLeft).b;
+    float solidityDown = texture(hydraulicsMap, UVDown).b;
 
-    float solidityCenter = normalizeSolidity(texture(hydraulicsMap, centerUV).b);
-    float solidityLeft = normalizeSolidity(texture(hydraulicsMap, leftUV).b);
-    float solidityDown = normalizeSolidity(texture(hydraulicsMap, downUV).b);
+    vec4 flowCenter = texture(flowMap, UVCenter);
+    vec4 flowLeft = texture(flowMap, UVLeft);
+    vec4 flowDown = texture(flowMap, UVDown);
 
     float divergenceCenter = flowCenter.b;
     float divergenceLeft = flowLeft.b;
@@ -64,24 +53,19 @@ vec2 applyProjection() {
     velocityLeft += (divergenceCenter - divergenceLeft) * (solidityCenter * solidityLeft);
     velocityDown += (divergenceCenter - divergenceDown) * (solidityCenter * solidityDown);
 
+    // velocityLeft += divergenceCenter;
+    // velocityDown += divergenceCenter;
+
     return vec2(velocityLeft, velocityDown);
+    // return flowCenter.xy;
 }
 
 void main() {
 
-    // if (texture(hydraulicsMap, v_uv).b == 1.0) {
-    //     fragColor0 = vec4(0.0);
-    //     fragColor1 = vec4(0.0);
-    // }
-    
-    // vec4 flow = texture(flowMap, v_uv);
-    // vec2 cellVelocity = applyProjection();
-    // vec4 matter = texture(matterMap, v_uv);
+    vec4 flow = texture(flowMap, v_uv);
+    flow.xy = applyProjection();
+    vec4 matter = texture(matterMap, v_uv);
 
-    // fragColor0 = vec4(cellVelocity.x, cellVelocity.y, flow.b, flow.a);
-    // fragColor1 = matter;
-
-    
-    fragColor0 = texture(flowMap, v_uv);
-    fragColor1 = texture(matterMap, v_uv);
+    fragColor0 = flow;
+    fragColor1 = matter;
 }

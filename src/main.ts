@@ -4,6 +4,7 @@ import Stats from 'stats-js';
 
 import { GameWorld } from './core/GameWorld';
 import { TestScene } from './scenes/TestScene';
+import { FluidScene } from './scenes/FluidScene';
 import { RenderingPipeline } from './rendering/RenderingPipeline';
 
 
@@ -18,7 +19,7 @@ async function main() {
     const sceneHeight: number = sceneScale;
 
     const gameWorld = new GameWorld()
-    gameWorld.loadScene(new TestScene());
+    gameWorld.loadScene(new FluidScene());
 
     const renderingPipeline = new RenderingPipeline(sceneWidth, sceneHeight);
     console.log(gameWorld.getAllEntities());

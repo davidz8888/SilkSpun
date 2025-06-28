@@ -22,6 +22,22 @@ layout(location = 5) out vec4 fragColor5; // hydraulics
 layout(location = 6) out vec4 fragColor6; // emissions
 
 
+float NORMALIZATION_FACTOR = 1.0;
+float EPSILON = 0.1; 
+
+
+float normalizeInfo(float info) {
+    return ((info * 2.0) - 1.0) * NORMALIZATION_FACTOR;
+}
+
+float zeroIfClose(float value) {
+    return abs(value) < EPSILON ? 0.0 : value;
+}
+
+float normalizeSolidity(float solidity) {
+    return (solidity - 1.0) * -1.0;
+}
+
 void main() {
     vec4 albedo = texture(albedoMap, v_uv);
     if (albedo.a <= 0.0) discard;
@@ -31,14 +47,16 @@ void main() {
     vec4 specular = texture(specularMap, v_uv);
     vec4 shininess = texture(shininessMap, v_uv);
     vec4 hydraulics = texture(hydraulicsMap, v_uv);
+    hydraulics.x = zeroIfClose(normalizeInfo(hydraulics.x));
+    hydraulics.y = zeroIfClose(normalizeInfo(hydraulics.y));
+    hydraulics.b = normalizeSolidity(hydraulics.b);
     vec4 emissions = texture(emissionsMap, v_uv);
 
     fragColor0 = albedo;
     fragColor1 = normal;
-    fragColor2 = vec4(v_positionWorld.z / -100.0, height, 1.0, 1.0);  // Depth/Height to the third render target
+    fragColor2 = vec4(v_positionWorld.z, height, 1.0, 1.0);  // Depth/Height to the third render target
     fragColor3 = specular;
     fragColor4 = shininess;
     fragColor5 = hydraulics;
     fragColor6 = emissions;
-    
 }

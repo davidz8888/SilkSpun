@@ -14,6 +14,7 @@ import defaultVertexShader from './shaders/defaultVertex.glsl';
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
 import hydraulicsFragmentShader from './shaders/hydraulicsFragment.glsl';
 import advectionFragmentShader from './shaders/advectionFragment.glsl';
+import divergenceFragmentShader from './shaders/divergenceFragment.glsl';
 import projectionFragmentShader from './shaders/projectionFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
 
@@ -40,6 +41,7 @@ export class RenderingPipeline {
     private lightingTarget: THREE.WebGLRenderTarget;
     private hydraulicsTarget: THREE.WebGLRenderTarget;
     private advectionTarget: THREE.WebGLRenderTarget;
+    private divergenceTarget: THREE.WebGLRenderTarget;
     private projectionTarget: THREE.WebGLRenderTarget;
     private compositeTarget: THREE.WebGLRenderTarget;
 
@@ -48,6 +50,7 @@ export class RenderingPipeline {
     private lightingScene: THREE.Scene;
     private hydraulicsScene: THREE.Scene;
     private advectionScene: THREE.Scene;
+    private divergenceScene: THREE.Scene;
     private projectionScene: THREE.Scene;
     private compositeScene: THREE.Scene;
     private screenScene: THREE.Scene;
@@ -61,8 +64,6 @@ export class RenderingPipeline {
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
         this.renderer.setSize(sceneWidth, sceneHeight);
-        this.renderer.autoClear = false;
-        this.renderer.clear();
         this.renderer.toneMapping = THREE.NoToneMapping;
         document.body.appendChild(this.renderer.domElement);
 
@@ -75,19 +76,21 @@ export class RenderingPipeline {
             100
         );
 
-        this.backgroundTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
-        this.gBuffer = this.createMRT(sceneWidth, sceneHeight, 7);
-        this.lightingTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+        this.backgroundTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
+        this.gBuffer = this.createFloatMRT(sceneWidth, sceneHeight, 7);
+        this.lightingTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.hydraulicsTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.advectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
+        this.divergenceTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.projectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
-        this.compositeTarget = new THREE.WebGLRenderTarget(sceneWidth, sceneHeight);
+        this.compositeTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
 
         this.backgroundScene = new THREE.Scene();
         this.terrainScene = new THREE.Scene();
         this.lightingScene = new THREE.Scene();
         this.hydraulicsScene = new THREE.Scene();
         this.advectionScene = new THREE.Scene();
+        this.divergenceScene = new THREE.Scene();
         this.projectionScene = new THREE.Scene();
         this.compositeScene = new THREE.Scene();
         this.screenScene = new THREE.Scene();
@@ -149,6 +152,7 @@ export class RenderingPipeline {
         const hydraulicsQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), hydraulicsMaterial);
         this.hydraulicsScene.add(hydraulicsQuad);
 
+
         const advectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
@@ -167,12 +171,30 @@ export class RenderingPipeline {
         const advectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), advectionMaterial);
         this.advectionScene.add(advectionQuad);
 
-        const projectionUniforms = {
+        const divergenceUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
             flowMap: { value: this.advectionTarget.textures[0] },
             matterMap: { value: this.advectionTarget.textures[1] }
+        }
+
+        const divergenceMaterial = new THREE.ShaderMaterial({
+            uniforms: divergenceUniforms,
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: divergenceFragmentShader
+        });
+        
+        const divergenceQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), divergenceMaterial);
+        this.divergenceScene.add(divergenceQuad);
+
+        const projectionUniforms = {
+            screenWidth: { value: sceneWidth },
+            screenHeight: { value: sceneHeight },
+            hydraulicsMap: { value: this.gBuffer.textures[5] },
+            flowMap: { value: this.divergenceTarget.textures[0] },
+            matterMap: { value: this.divergenceTarget.textures[1] }
         }
 
         const projectionMaterial = new THREE.ShaderMaterial({
@@ -190,6 +212,7 @@ export class RenderingPipeline {
             screenHeight: { value: sceneHeight },
             background: { value: this.backgroundTarget.texture },
             foreground: { value: this.lightingTarget.texture },
+            hydraulicsMap: { value: this.hydraulicsTarget.texture },
             flowMap: {  value: this.projectionTarget.textures[0] },
             matterMap: { value: this.projectionTarget.textures[1] }
         };
@@ -213,7 +236,6 @@ export class RenderingPipeline {
 
         const screenQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), screenMaterial);
         this.screenScene.add(screenQuad);
-
     }
 
 
@@ -243,7 +265,7 @@ export class RenderingPipeline {
         this.infiniteLightsTHREE = RenderingPipeline.convertInfiniteLights(this.infiniteLights);
         RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
         this.lightingMaterial.uniforms.infiniteLights.value = this.infiniteLightsTHREE;
-        this.lightingMaterial.uniforms.numInfiniteLightsInUse.value = this.pointLights.length;
+        this.lightingMaterial.uniforms.numInfiniteLightsInUse.value = this.infiniteLights.length;
     
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
@@ -253,6 +275,9 @@ export class RenderingPipeline {
 
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
+
+        this.renderer.setRenderTarget(this.divergenceTarget);
+        this.renderer.render(this.divergenceScene, this.camera);
 
         this.renderer.setRenderTarget(this.projectionTarget);
         this.renderer.render(this.projectionScene, this.camera);
@@ -375,25 +400,15 @@ export class RenderingPipeline {
         return new THREE.Vector3(v.x, v.y, v.z);
     }
 
-    private createMRT(width: number, height: number, numTargets: number): THREE.WebGLRenderTarget {
-        return new THREE.WebGLRenderTarget(width, height, {
-            minFilter: THREE.NearestFilter,
-            magFilter: THREE.NearestFilter,
-            count: numTargets
-        });
-    }
 
     private createFloatMRT(width: number, height: number, numTargets: number): THREE.WebGLRenderTarget {
         return new THREE.WebGLRenderTarget(width, height, {
             type: THREE.FloatType,
-            format: THREE.RGBAFormat,
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
             count: numTargets,
-            depthBuffer: false,
         });
     }
-
 
 }
 
