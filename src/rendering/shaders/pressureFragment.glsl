@@ -22,7 +22,7 @@ vec2 toUV(vec2 worldPos) {
 
 void main() {
 
-    vec2 posCenter = v_positionWorld.xy;
+    vec2 posCenter = floor(v_positionWorld.xy);
     vec2 posLeft = posCenter + vec2(-1.0, 0.0);
     vec2 posRight = posCenter + vec2(1.0, 0.0);
     vec2 posUp = posCenter + vec2(0.0, 1.0);

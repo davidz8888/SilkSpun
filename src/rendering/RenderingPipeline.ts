@@ -325,7 +325,7 @@ export class RenderingPipeline {
         this.renderer.render(this.pressureScene, this.camera);
 
 
-        const NUM_ITERATIONS = 10;
+        const NUM_ITERATIONS = 50;
 
         for (let i = 0; i < NUM_ITERATIONS; i++) {
 

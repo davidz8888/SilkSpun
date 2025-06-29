@@ -23,7 +23,7 @@ vec2 toUV(vec2 worldPos) {
 
 vec4 interpolatingSample(sampler2D map, vec2 worldPos) {
 
-    worldPos += 1.0;
+    worldPos;
     vec2 base = floor(worldPos);
     vec2 offset = worldPos - base;
     vec2 complement = 1.0 - offset;
