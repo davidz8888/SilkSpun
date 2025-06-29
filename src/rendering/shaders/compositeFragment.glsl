@@ -42,9 +42,10 @@ void main() {
     // vec4 coloredPressure = vec4(pressureA.r, abs(divergence.r), -pressureA.r, 1.0);
     vec4 coloredPressure = vec4(pressureA.r, 0.0, -pressureA.r, 1.0);
 
-    fragColor = safeColor(coloredPressure);
-    // fragColor = matter;
+    fragColor = vec4(divergence.r, 0.0, -divergence.r, 0.0);
+    // fragColor = safeColor(coloredPressure);
+    fragColor = matter;
     // fragColor = safeColor(vec4(abs(velocity.r)));
     // fragColor = vec4(velocity.y);
-    // fragColor = abs(velocity);
+    // fragColor = velocity;
 }

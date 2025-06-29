@@ -21,7 +21,7 @@ float dT = 1.0 / 60.0;
 
 float EPSILON = 0.1; 
 
-float ACCELERATION_SCALING = 1000.0;
+float ACCELERATION_SCALING = 500.0;
 
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;

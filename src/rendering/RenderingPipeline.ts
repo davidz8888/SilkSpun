@@ -325,7 +325,7 @@ export class RenderingPipeline {
         this.renderer.render(this.pressureScene, this.camera);
 
 
-        const NUM_ITERATIONS = 50;
+        const NUM_ITERATIONS = 500;
 
         for (let i = 0; i < NUM_ITERATIONS; i++) {
 
@@ -341,6 +341,10 @@ export class RenderingPipeline {
 
         this.renderer.setRenderTarget(this.projectionTarget);
         this.renderer.render(this.projectionScene, this.camera);
+
+        this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];
+        this.renderer.setRenderTarget(this.divergenceTarget);
+        this.renderer.render(this.divergenceScene, this.camera);
 
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
