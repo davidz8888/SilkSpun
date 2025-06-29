@@ -1,5 +1,4 @@
-// #version 300 es
-// precision mediump float;
+precision highp float;
 
 in vec3 v_positionWorld;
 in vec3 v_viewPositionWorld;
@@ -9,16 +8,10 @@ uniform float screenWidth;
 uniform float screenHeight;
 
 uniform sampler2D hydraulicsMap;
-uniform sampler2D flowMap;
+uniform sampler2D velocityMap;
 uniform sampler2D matterMap;
 
-layout(location = 0) out vec4 fragColor0; // Flow
-layout(location = 1) out vec4 fragColor1; // Matter
-
-float NORMALIZATION_FACTOR = 1.0;
-
-float OVER_RELAXATION = 2.0;
-float dT = 1.0 / 60.0;
+out vec4 fragColor;
 
 
 vec2 toUV(vec2 worldPos) { 
@@ -39,10 +32,10 @@ float calculateDivergence() {
     vec2 UVUp = toUV(posUp);
     vec2 UVDown = toUV(posDown);
 
-    float velocityLeft = texture(flowMap, UVCenter).r;
-    float velocityRight = texture(flowMap, UVRight).r;
-    float velocityUp = texture(flowMap, UVUp).g;
-    float velocityDown = texture(flowMap, UVCenter).g;
+    float velocityLeft = texture(velocityMap, UVCenter).r;
+    float velocityRight = texture(velocityMap, UVRight).r;
+    float velocityUp = texture(velocityMap, UVUp).g;
+    float velocityDown = texture(velocityMap, UVCenter).g;
 
     float solidityLeft = texture(hydraulicsMap, UVLeft).b;
     float solidityRight = texture(hydraulicsMap, UVRight).b;
@@ -52,16 +45,12 @@ float calculateDivergence() {
     float divergence = -velocityLeft + velocityRight + velocityUp + -velocityDown;
     float neighbourSolidity = solidityLeft + solidityRight + solidityUp + solidityDown;
 
-    float result = neighbourSolidity != 0.0 ? (divergence / neighbourSolidity) : 0.0;
+    float result = neighbourSolidity >= 1.0 ? (divergence / neighbourSolidity) : 0.0;
     return result;
 }
 
 void main() {
 
-    vec4 flow = texture(flowMap, v_uv);
-    flow.b = calculateDivergence();
-    vec4 matter = texture(matterMap, v_uv);    
-
-    fragColor0 = flow;
-    fragColor1 = matter;
+    float divergence = calculateDivergence();
+    fragColor = vec4(divergence, 0.0, 0.0, 1.0);
 }

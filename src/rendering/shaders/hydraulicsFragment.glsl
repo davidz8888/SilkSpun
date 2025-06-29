@@ -1,5 +1,4 @@
-// #version 300 es
-// precision mediump float;
+precision highp float;
 
 in vec3 v_positionWorld;
 in vec3 v_viewPositionWorld;
@@ -10,15 +9,14 @@ uniform float screenHeight;
 
 uniform sampler2D hydraulicsMap;
 uniform sampler2D emissionsMap;
-uniform sampler2D flowMap;
+uniform sampler2D velocityMap;
 uniform sampler2D matterMap;
 
-layout(location = 0) out vec4 fragColor0; // Flow
-layout(location = 1) out vec4 fragColor1; // Matter
+layout(location = 0) out vec4 fragColor0;
+layout(location = 1) out vec4 fragColor1;
 
-float NORMALIZATION_FACTOR = 1.0;
+float NORMALIZATION_FACTOR = 10.0;
 
-float OVER_RELAXATION = 2.0;
 float dT = 1.0 / 60.0;
 
 float EPSILON = 0.1; 
@@ -39,7 +37,7 @@ vec2 calculateVelocities() {
     vec2 UVLeft = toUV(posLeft);
     vec2 UVDown = toUV(posDown);
 
-    vec2 cellVelocity = texture(flowMap, UVCenter).xy;
+    vec2 cellVelocity = texture(velocityMap, UVCenter).xy;
     vec2 cellAcceleration = texture(hydraulicsMap, UVCenter).xy;
 
     float solidityCenter = texture(hydraulicsMap, UVCenter).b;
@@ -65,9 +63,9 @@ vec4 calculateEmissions() {
 
 void main() {
     
-    vec4 flow = texture(flowMap, v_uv);
-    flow.xy = calculateVelocities();
+    vec4 velocity = texture(velocityMap, v_uv);
+    velocity.xy = calculateVelocities();
     
-    fragColor0 = flow;
+    fragColor0 = velocity;
     fragColor1 = calculateEmissions();
 }

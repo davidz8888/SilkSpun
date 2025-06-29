@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { Entity } from '../entities/Entity';
 import { ForegroundEntity } from '../entities/ForegroundEntity';
 import { BackgroundEntity } from '../entities/BackgroundEntity';
-import { LightingController, PointLight, InfiniteLight, SkyLight} from '../controller/LightingController';
+import { LightingController, PointLight, InfiniteLight, SkyLight } from '../controller/LightingController';
 import { Vec3 } from '../math/Vec3';
 import { SkySampler } from './SkySampler';
 
@@ -15,6 +15,7 @@ import lightingFragmentShader from './shaders/lightingFragment.glsl';
 import hydraulicsFragmentShader from './shaders/hydraulicsFragment.glsl';
 import advectionFragmentShader from './shaders/advectionFragment.glsl';
 import divergenceFragmentShader from './shaders/divergenceFragment.glsl';
+import pressureFragmentShader from './shaders/pressureFragment.glsl';
 import projectionFragmentShader from './shaders/projectionFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
 
@@ -38,6 +39,7 @@ export class RenderingPipeline {
     private hydraulicsMaterial: THREE.ShaderMaterial;
     private advectionMaterial: THREE.ShaderMaterial;
     private divergenceMaterial: THREE.ShaderMaterial;
+    private pressureMaterial: THREE.ShaderMaterial;
     private projectionMaterial: THREE.ShaderMaterial;
 
     private backgroundTarget: THREE.WebGLRenderTarget;
@@ -46,6 +48,8 @@ export class RenderingPipeline {
     private hydraulicsTarget: THREE.WebGLRenderTarget;
     private advectionTarget: THREE.WebGLRenderTarget;
     private divergenceTarget: THREE.WebGLRenderTarget;
+    private pressureTargetA: THREE.WebGLRenderTarget;
+    private pressureTargetB: THREE.WebGLRenderTarget;
     private projectionTarget: THREE.WebGLRenderTarget;
     private compositeTarget: THREE.WebGLRenderTarget;
 
@@ -55,6 +59,7 @@ export class RenderingPipeline {
     private hydraulicsScene: THREE.Scene;
     private advectionScene: THREE.Scene;
     private divergenceScene: THREE.Scene;
+    private pressureScene: THREE.Scene;
     private projectionScene: THREE.Scene;
     private compositeScene: THREE.Scene;
     private screenScene: THREE.Scene;
@@ -86,7 +91,9 @@ export class RenderingPipeline {
         this.lightingTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.hydraulicsTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.advectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
-        this.divergenceTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
+        this.divergenceTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
+        this.pressureTargetA = this.createFloatMRT(sceneWidth, sceneHeight, 1);
+        this.pressureTargetB = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.projectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.compositeTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
 
@@ -96,6 +103,7 @@ export class RenderingPipeline {
         this.hydraulicsScene = new THREE.Scene();
         this.advectionScene = new THREE.Scene();
         this.divergenceScene = new THREE.Scene();
+        this.pressureScene = new THREE.Scene();
         this.projectionScene = new THREE.Scene();
         this.compositeScene = new THREE.Scene();
         this.screenScene = new THREE.Scene();
@@ -143,7 +151,7 @@ export class RenderingPipeline {
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
             emissionsMap: { value: this.gBuffer.textures[6] },
-            flowMap: { value: this.projectionTarget.textures[0] },
+            velocityMap: { value: this.projectionTarget.textures[0] },
             matterMap: { value: this.projectionTarget.textures[1] }
         }
 
@@ -153,7 +161,7 @@ export class RenderingPipeline {
             vertexShader: defaultVertexShader,
             fragmentShader: hydraulicsFragmentShader
         });
-        
+
         const hydraulicsQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.hydraulicsMaterial);
         this.hydraulicsScene.add(hydraulicsQuad);
 
@@ -162,7 +170,7 @@ export class RenderingPipeline {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
-            flowMap: { value: this.hydraulicsTarget.textures[0] },
+            velocityMap: { value: this.hydraulicsTarget.textures[0] },
             matterMap: { value: this.hydraulicsTarget.textures[1] }
         }
 
@@ -172,7 +180,7 @@ export class RenderingPipeline {
             vertexShader: defaultVertexShader,
             fragmentShader: advectionFragmentShader
         });
-        
+
         const advectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.advectionMaterial);
         this.advectionScene.add(advectionQuad);
 
@@ -180,7 +188,7 @@ export class RenderingPipeline {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
-            flowMap: { value: this.advectionTarget.textures[0] },
+            velocityMap: { value: this.advectionTarget.textures[0] },
             matterMap: { value: this.advectionTarget.textures[1] }
         }
 
@@ -190,16 +198,36 @@ export class RenderingPipeline {
             vertexShader: defaultVertexShader,
             fragmentShader: divergenceFragmentShader
         });
-        
+
         const divergenceQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.divergenceMaterial);
         this.divergenceScene.add(divergenceQuad);
+
+
+        const pressureUniform = {
+            screenWidth: { value: sceneWidth },
+            screenHeight: { value: sceneHeight },
+            hydraulicsMap: { value: this.gBuffer.textures[5] },
+            divergenceMap: { value: this.divergenceTarget.texture },
+            pressureMap: { value: this.pressureTargetB.texture }
+        }
+
+        this.pressureMaterial = new THREE.ShaderMaterial({
+            uniforms: pressureUniform,
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: pressureFragmentShader,
+        });
+
+        const pressureQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.pressureMaterial);
+        this.pressureScene.add(pressureQuad);
 
         const projectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
             hydraulicsMap: { value: this.gBuffer.textures[5] },
-            flowMap: { value: this.divergenceTarget.textures[0] },
-            matterMap: { value: this.divergenceTarget.textures[1] }
+            velocityMap: { value: this.advectionTarget.textures[0] },
+            matterMap: { value: this.advectionTarget.textures[1] },
+            pressureMap: { value: this.pressureTargetA.textures[0] }
         }
 
         this.projectionMaterial = new THREE.ShaderMaterial({
@@ -208,7 +236,7 @@ export class RenderingPipeline {
             vertexShader: defaultVertexShader,
             fragmentShader: projectionFragmentShader
         });
-        
+
         const projectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.projectionMaterial);
         this.projectionScene.add(projectionQuad);
 
@@ -218,8 +246,11 @@ export class RenderingPipeline {
             background: { value: this.backgroundTarget.texture },
             foreground: { value: this.lightingTarget.texture },
             hydraulicsMap: { value: this.hydraulicsTarget.texture },
-            flowMap: {  value: this.projectionTarget.textures[0] },
-            matterMap: { value: this.projectionTarget.textures[1] }
+            velocityMap: { value: this.projectionTarget.textures[0] },
+            matterMap: { value: this.projectionTarget.textures[1] },
+            divergenceMap : { value: this.divergenceTarget.texture },
+            pressureMapA: { value: this.pressureTargetA.texture },
+            pressureMapB: { value: this.pressureTargetB.texture }
         };
 
         const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
@@ -271,7 +302,7 @@ export class RenderingPipeline {
         RenderingPipeline.padInfiniteLights(this.infiniteLightsTHREE)
         this.lightingMaterial.uniforms.infiniteLights.value = this.infiniteLightsTHREE;
         this.lightingMaterial.uniforms.numInfiniteLightsInUse.value = this.infiniteLights.length;
-    
+
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
@@ -281,27 +312,35 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
-        this.divergenceMaterial.uniforms.flowMap.value = this.advectionTarget.textures[0];
-        this.divergenceMaterial.uniforms.matterMap.value = this.advectionTarget.textures[1];
-
         this.renderer.setRenderTarget(this.divergenceTarget);
         this.renderer.render(this.divergenceScene, this.camera);
 
-        this.renderer.setRenderTarget(this.projectionTarget);
-        this.renderer.render(this.projectionScene, this.camera);
+        this.renderer.setRenderTarget(this.pressureTargetA);
+        this.renderer.clear();
 
-        this.divergenceMaterial.uniforms.flowMap.value = this.projectionTarget.textures[0];
-        this.divergenceMaterial.uniforms.matterMap.value = this.projectionTarget.textures[1];
+        this.renderer.setRenderTarget(this.pressureTargetB);
+        this.renderer.clear();
 
-        const NUM_ITERATIONS = 20;
+        this.renderer.setRenderTarget(this.pressureTargetA);
+        this.renderer.render(this.pressureScene, this.camera);
+
+
+        const NUM_ITERATIONS = 10;
+
         for (let i = 0; i < NUM_ITERATIONS; i++) {
 
-            this.renderer.setRenderTarget(this.divergenceTarget);
-            this.renderer.render(this.divergenceScene, this.camera);
-    
-            this.renderer.setRenderTarget(this.projectionTarget);
-            this.renderer.render(this.projectionScene, this.camera);
+            this.pressureMaterial.uniforms.pressureMap.value = this.pressureTargetA.texture;
+            this.renderer.setRenderTarget(this.pressureTargetB);
+            this.renderer.render(this.pressureScene, this.camera);
+
+            this.pressureMaterial.uniforms.pressureMap.value = this.pressureTargetB.texture;
+            this.renderer.setRenderTarget(this.pressureTargetA);
+            this.renderer.render(this.pressureScene, this.camera);
+
         }
+
+        this.renderer.setRenderTarget(this.projectionTarget);
+        this.renderer.render(this.projectionScene, this.camera);
 
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
@@ -380,7 +419,7 @@ export class RenderingPipeline {
             falloff: 1,
             radius: 0
         };
-    
+
         const MAX_POINTLIGHTS = 100
 
         while (pointLights.length < MAX_POINTLIGHTS) {
@@ -402,7 +441,7 @@ export class RenderingPipeline {
             color: new THREE.Vector3(0, 0, 0),
             shadowDistance: 0
         };
-    
+
         const MAX_INFINITELIGHTS = 10
 
         while (infiniteLights.length < MAX_INFINITELIGHTS) {

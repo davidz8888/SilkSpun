@@ -1,5 +1,4 @@
-// #version 300 es
-// precision mediump float;
+precision highp float;
 
 out vec3 v_positionWorld;    // World position of the vertex
 out vec3 v_viewPositionWorld;
