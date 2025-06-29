@@ -13,7 +13,7 @@ uniform sampler2D pressureMap;
 
 out vec4 fragColor;
 
-float OVER_RELAXATION = 1.0;
+float UNDER_RELAXATION = 1.0;
 
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
@@ -58,7 +58,7 @@ void main() {
 
     float pressureJacobi = (pressureSum - divergence) / max(solidityCount, 1.0);
     vec4 pressure = texture(pressureMap, UVCenter);
-    pressure.r = solidityCenter < 1.0 ? 0.0 : mix(pressure.r, pressureJacobi, OVER_RELAXATION);
+    pressure.r = solidityCenter < 1.0 ? 0.0 : mix(pressure.r, pressureJacobi, UNDER_RELAXATION);
 
     fragColor = pressure;
 }

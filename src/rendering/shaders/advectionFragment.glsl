@@ -73,6 +73,9 @@ void main() {
 
         velocity = interpolatingSample(velocityMap, lastPos);
         matter = interpolatingSample(matterMap, lastPos);
+
+        // velocity = texture(velocityMap, toUV(lastPos));
+        // matter = texture(matterMap, toUV(lastPos));
     }
 
     // vec2 lastPos = backstep();
