@@ -14,9 +14,11 @@ async function main() {
     document.body.appendChild(stats.dom);
 
 
-    const sceneScale: number = 176;
-    const sceneWidth: number = (sceneScale * window.innerWidth) / window.innerHeight;
-    const sceneHeight: number = sceneScale;
+    // const sceneScale: number = 176;
+    // const sceneWidth: number = (sceneScale * window.innerWidth) / window.innerHeight;
+    // const sceneHeight: number = sceneScale;
+    const sceneWidth = 320;
+    const sceneHeight = 176;
 
     const gameWorld = new GameWorld()
     gameWorld.loadScene(new FluidScene());

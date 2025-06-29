@@ -17,7 +17,7 @@ layout(location = 1) out vec4 fragColor1; // Matter
 
 float NORMALIZATION_FACTOR = 1.0;
 
-float OVER_RELAXATION = 2.0;
+float OVER_RELAXATION = 1.0;
 float dT = 1.0 / 60.0;
 
 vec2 toUV(vec2 worldPos) { 
@@ -50,8 +50,8 @@ vec2 applyProjection() {
     float velocityLeft = flowCenter.r;
     float velocityDown = flowCenter.g;
 
-    velocityLeft += (divergenceCenter - divergenceLeft) * (solidityCenter * solidityLeft);
-    velocityDown += (divergenceCenter - divergenceDown) * (solidityCenter * solidityDown);
+    velocityLeft += (divergenceCenter - divergenceLeft) * OVER_RELAXATION * (solidityCenter * solidityLeft);
+    velocityDown += (divergenceCenter - divergenceDown) * OVER_RELAXATION * (solidityCenter * solidityDown);
 
     return vec2(velocityLeft, velocityDown);
 }

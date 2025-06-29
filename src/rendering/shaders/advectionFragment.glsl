@@ -53,7 +53,7 @@ vec4 interpolatingSample(sampler2D map, vec2 worldPos) {
 vec2 backstep() {
 
     vec2 cellVelocity = texture(flowMap, v_uv).xy; 
-    // return floor(v_positionWorld.xy) - (cellVelocity * dT * OVER_RELAXATION);
+    return floor(v_positionWorld.xy) - (cellVelocity * dT);
     return v_positionWorld.xy - (cellVelocity * dT);
 
 }
@@ -61,10 +61,26 @@ vec2 backstep() {
 
 void main() {
 
+    vec4 flow;
+    vec4 matter;
+
+    if (texture(hydraulicsMap, v_uv).b == 0.0) {
+
+        flow = vec4(0.0, 0.0, 0.0, 1.0);
+        matter = vec4(0.0, 0.0, 0.0, 0.0);
+
+    } else {
+
     vec2 lastPos = backstep();
-    
-    vec4 flow = interpolatingSample(flowMap, lastPos);
-    vec4 matter = interpolatingSample(matterMap, lastPos);
+
+    flow = interpolatingSample(flowMap, lastPos);
+    matter = interpolatingSample(matterMap, lastPos);
+    }
+
+    // vec2 lastPos = backstep();
+
+    // vec4 flow = interpolatingSample(flowMap, lastPos);
+    // vec4 matter = interpolatingSample(matterMap, lastPos);
 
     fragColor0 = flow;
     fragColor1 = matter;

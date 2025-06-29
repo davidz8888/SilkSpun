@@ -35,6 +35,10 @@ export class RenderingPipeline {
     private skyLightDirections: THREE.Vector3[];
 
     private lightingMaterial: THREE.ShaderMaterial;
+    private hydraulicsMaterial: THREE.ShaderMaterial;
+    private advectionMaterial: THREE.ShaderMaterial;
+    private divergenceMaterial: THREE.ShaderMaterial;
+    private projectionMaterial: THREE.ShaderMaterial;
 
     private backgroundTarget: THREE.WebGLRenderTarget;
     private gBuffer: THREE.WebGLRenderTarget;
@@ -63,6 +67,7 @@ export class RenderingPipeline {
         this.sceneHeight = sceneHeight;
 
         this.renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+        this.renderer.autoClear = false;
         this.renderer.setSize(sceneWidth, sceneHeight);
         this.renderer.toneMapping = THREE.NoToneMapping;
         document.body.appendChild(this.renderer.domElement);
@@ -142,14 +147,14 @@ export class RenderingPipeline {
             matterMap: { value: this.projectionTarget.textures[1] }
         }
 
-        const hydraulicsMaterial = new THREE.ShaderMaterial({
+        this.hydraulicsMaterial = new THREE.ShaderMaterial({
             uniforms: hydraulicsUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
             fragmentShader: hydraulicsFragmentShader
         });
         
-        const hydraulicsQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), hydraulicsMaterial);
+        const hydraulicsQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.hydraulicsMaterial);
         this.hydraulicsScene.add(hydraulicsQuad);
 
 
@@ -161,14 +166,14 @@ export class RenderingPipeline {
             matterMap: { value: this.hydraulicsTarget.textures[1] }
         }
 
-        const advectionMaterial = new THREE.ShaderMaterial({
+        this.advectionMaterial = new THREE.ShaderMaterial({
             uniforms: advectionUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
             fragmentShader: advectionFragmentShader
         });
         
-        const advectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), advectionMaterial);
+        const advectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.advectionMaterial);
         this.advectionScene.add(advectionQuad);
 
         const divergenceUniforms = {
@@ -179,14 +184,14 @@ export class RenderingPipeline {
             matterMap: { value: this.advectionTarget.textures[1] }
         }
 
-        const divergenceMaterial = new THREE.ShaderMaterial({
+        this.divergenceMaterial = new THREE.ShaderMaterial({
             uniforms: divergenceUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
             fragmentShader: divergenceFragmentShader
         });
         
-        const divergenceQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), divergenceMaterial);
+        const divergenceQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.divergenceMaterial);
         this.divergenceScene.add(divergenceQuad);
 
         const projectionUniforms = {
@@ -197,14 +202,14 @@ export class RenderingPipeline {
             matterMap: { value: this.divergenceTarget.textures[1] }
         }
 
-        const projectionMaterial = new THREE.ShaderMaterial({
+        this.projectionMaterial = new THREE.ShaderMaterial({
             uniforms: projectionUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
             fragmentShader: projectionFragmentShader
         });
         
-        const projectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), projectionMaterial);
+        const projectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.projectionMaterial);
         this.projectionScene.add(projectionQuad);
 
         const compositeUniforms = {
@@ -276,11 +281,27 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
+        this.divergenceMaterial.uniforms.flowMap.value = this.advectionTarget.textures[0];
+        this.divergenceMaterial.uniforms.matterMap.value = this.advectionTarget.textures[1];
+
         this.renderer.setRenderTarget(this.divergenceTarget);
         this.renderer.render(this.divergenceScene, this.camera);
 
         this.renderer.setRenderTarget(this.projectionTarget);
         this.renderer.render(this.projectionScene, this.camera);
+
+        this.divergenceMaterial.uniforms.flowMap.value = this.projectionTarget.textures[0];
+        this.divergenceMaterial.uniforms.matterMap.value = this.projectionTarget.textures[1];
+
+        const NUM_ITERATIONS = 20;
+        for (let i = 0; i < NUM_ITERATIONS; i++) {
+
+            this.renderer.setRenderTarget(this.divergenceTarget);
+            this.renderer.render(this.divergenceScene, this.camera);
+    
+            this.renderer.setRenderTarget(this.projectionTarget);
+            this.renderer.render(this.projectionScene, this.camera);
+        }
 
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);

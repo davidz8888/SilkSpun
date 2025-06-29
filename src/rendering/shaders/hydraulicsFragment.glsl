@@ -23,6 +23,8 @@ float dT = 1.0 / 60.0;
 
 float EPSILON = 0.1; 
 
+float ACCELERATION_SCALING = 10.0;
+
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
 }
@@ -44,8 +46,8 @@ vec2 calculateVelocities() {
     float solidityLeft = texture(hydraulicsMap, UVLeft).b;
     float solidityDown = texture(hydraulicsMap, UVDown).b;
 
-    cellVelocity.x = (cellVelocity.x + (cellAcceleration.x * dT )) * (solidityCenter * solidityLeft);
-    cellVelocity.y = (cellVelocity.y + (cellAcceleration.y * dT)) * (solidityCenter * solidityDown);
+    cellVelocity.x = (cellVelocity.x + (cellAcceleration.x * dT * ACCELERATION_SCALING)) * (solidityCenter * solidityLeft);
+    cellVelocity.y = (cellVelocity.y + (cellAcceleration.y * dT * ACCELERATION_SCALING)) * (solidityCenter * solidityDown);
 
     return cellVelocity;
 }

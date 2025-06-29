@@ -33,8 +33,13 @@ void main() {
     float OVER_RELAXATION = 2.0;
     float dT = 1.0 / 60.0;
 
-    fragColor = vec4(flow.b);
-    // fragColor = matter;
+    // if (abs(flow.b) > 0.5) {
+    //     fragColor = vec4(1.0);
+    // } else {
+    //     fragColor = vec4(0.0);
+    // }
+    fragColor = matter;
+    // fragColor = vec4(abs(flow.b));
     // fragColor = ((matter + flow) * OVER_REAXATION * dT) - 5.0;
     // fragColor = matter + (flow / 10.0);
     // fragColor = texture(hydraulicsMap, v_uv);
