@@ -17,7 +17,6 @@ uniform sampler2D shininessMap;
 
 out vec4 fragColor;
 
-const float HEIGHT_SCALING = 8.0;
 
 // #define NUM_RAYS 9
 // const vec3 rayOffsets[NUM_RAYS] = vec3[NUM_RAYS](
@@ -83,10 +82,10 @@ vec2 toUV(vec3 worldPos) {
 float getZ(vec2 uv) {
     vec4 fragZInfo = texture(heightMap, uv);
 
-    if (fragZInfo.b != 1.0) {
+    if (fragZInfo.a <= 0.0) {
         return -100.0;
     } else {
-        return fragZInfo.r + (fragZInfo.g * HEIGHT_SCALING);
+        return fragZInfo.r;
     }
 
 }

@@ -8,18 +8,22 @@ import { BackgroundEntity } from '../entities/BackgroundEntity';
 import { LightingController, PointLight, InfiniteLight, SkyLight } from '../controller/LightingController';
 import { Vec3 } from '../math/Vec3';
 import { SkySampler } from './SkySampler';
-
+import { AssetLoader } from './AssetLoader';
 
 import defaultVertexShader from './shaders/defaultVertex.glsl';
+import terrainFragmentShader from './shaders/terrainFragment.glsl'
 import lightingFragmentShader from './shaders/lightingFragment.glsl';
-import hydraulicsFragmentShader from './shaders/hydraulicsFragment.glsl';
+import hydraulicsFragmentShader from './shaders/hydraulicsFragment.glsl'
+import injectionFragmentShader from './shaders/injectionFragment.glsl';
 import advectionFragmentShader from './shaders/advectionFragment.glsl';
 import divergenceFragmentShader from './shaders/divergenceFragment.glsl';
 import pressureFragmentShader from './shaders/pressureFragment.glsl';
 import projectionFragmentShader from './shaders/projectionFragment.glsl';
 import compositeFragmentShader from './shaders/compositeFragment.glsl';
+import backgroundFragmentShader from './shaders/backgroundFragment.glsl';
 
 export class RenderingPipeline {
+
     private sceneWidth: number;
     private sceneHeight: number;
 
@@ -36,7 +40,7 @@ export class RenderingPipeline {
     private skyLightDirections: THREE.Vector3[];
 
     private lightingMaterial: THREE.ShaderMaterial;
-    private hydraulicsMaterial: THREE.ShaderMaterial;
+    private injectionMaterial: THREE.ShaderMaterial;
     private advectionMaterial: THREE.ShaderMaterial;
     private divergenceMaterial: THREE.ShaderMaterial;
     private pressureMaterial: THREE.ShaderMaterial;
@@ -46,6 +50,7 @@ export class RenderingPipeline {
     private gBuffer: THREE.WebGLRenderTarget;
     private lightingTarget: THREE.WebGLRenderTarget;
     private hydraulicsTarget: THREE.WebGLRenderTarget;
+    private injectionTarget: THREE.WebGLRenderTarget;
     private advectionTarget: THREE.WebGLRenderTarget;
     private divergenceTarget: THREE.WebGLRenderTarget;
     private pressureTargetA: THREE.WebGLRenderTarget;
@@ -57,6 +62,7 @@ export class RenderingPipeline {
     private terrainScene: THREE.Scene;
     private lightingScene: THREE.Scene;
     private hydraulicsScene: THREE.Scene;
+    private injectionScene: THREE.Scene;
     private advectionScene: THREE.Scene;
     private divergenceScene: THREE.Scene;
     private pressureScene: THREE.Scene;
@@ -90,6 +96,7 @@ export class RenderingPipeline {
         this.gBuffer = this.createFloatMRT(sceneWidth, sceneHeight, 7);
         this.lightingTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.hydraulicsTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
+        this.injectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.advectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.divergenceTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.pressureTargetA = this.createFloatMRT(sceneWidth, sceneHeight, 1);
@@ -101,6 +108,7 @@ export class RenderingPipeline {
         this.terrainScene = new THREE.Scene();
         this.lightingScene = new THREE.Scene();
         this.hydraulicsScene = new THREE.Scene();
+        this.injectionScene = new THREE.Scene();
         this.advectionScene = new THREE.Scene();
         this.divergenceScene = new THREE.Scene();
         this.pressureScene = new THREE.Scene();
@@ -146,32 +154,33 @@ export class RenderingPipeline {
         const lightingQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.lightingMaterial);
         this.lightingScene.add(lightingQuad);
 
-        const hydraulicsUniforms = {
+
+        const injectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
-            hydraulicsMap: { value: this.gBuffer.textures[5] },
-            emissionsMap: { value: this.gBuffer.textures[6] },
+            hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
+            emissionsMap: { value: this.hydraulicsTarget.textures[1] },
             velocityMap: { value: this.projectionTarget.textures[0] },
             matterMap: { value: this.projectionTarget.textures[1] }
         }
 
-        this.hydraulicsMaterial = new THREE.ShaderMaterial({
-            uniforms: hydraulicsUniforms,
+        this.injectionMaterial = new THREE.ShaderMaterial({
+            uniforms: injectionUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
-            fragmentShader: hydraulicsFragmentShader
+            fragmentShader: injectionFragmentShader
         });
 
-        const hydraulicsQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.hydraulicsMaterial);
-        this.hydraulicsScene.add(hydraulicsQuad);
+        const injectionQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.injectionMaterial);
+        this.injectionScene.add(injectionQuad);
 
 
         const advectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
-            hydraulicsMap: { value: this.gBuffer.textures[5] },
-            velocityMap: { value: this.hydraulicsTarget.textures[0] },
-            matterMap: { value: this.hydraulicsTarget.textures[1] }
+            hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
+            velocityMap: { value: this.injectionTarget.textures[0] },
+            matterMap: { value: this.injectionTarget.textures[1] }
         }
 
         this.advectionMaterial = new THREE.ShaderMaterial({
@@ -187,7 +196,7 @@ export class RenderingPipeline {
         const divergenceUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
-            hydraulicsMap: { value: this.gBuffer.textures[5] },
+            hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
             velocityMap: { value: this.advectionTarget.textures[0] },
             matterMap: { value: this.advectionTarget.textures[1] }
         }
@@ -206,7 +215,7 @@ export class RenderingPipeline {
         const pressureUniform = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
-            hydraulicsMap: { value: this.gBuffer.textures[5] },
+            hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
             divergenceMap: { value: this.divergenceTarget.texture },
             pressureMap: { value: this.pressureTargetB.texture }
         }
@@ -224,10 +233,11 @@ export class RenderingPipeline {
         const projectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
-            hydraulicsMap: { value: this.gBuffer.textures[5] },
+            hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
             velocityMap: { value: this.advectionTarget.textures[0] },
             matterMap: { value: this.advectionTarget.textures[1] },
-            pressureMap: { value: this.pressureTargetA.textures[0] }
+            pressureMap: { value: this.pressureTargetA.textures[0] },
+            divergenceMap: { value: this.divergenceTarget.texture }
         }
 
         this.projectionMaterial = new THREE.ShaderMaterial({
@@ -243,12 +253,12 @@ export class RenderingPipeline {
         const compositeUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
-            background: { value: this.backgroundTarget.texture },
-            foreground: { value: this.lightingTarget.texture },
-            hydraulicsMap: { value: this.hydraulicsTarget.texture },
+            backgroundMap: { value: this.backgroundTarget.texture },
+            foregroundMap: { value: this.lightingTarget.texture },
+            hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
             velocityMap: { value: this.projectionTarget.textures[0] },
             matterMap: { value: this.projectionTarget.textures[1] },
-            divergenceMap : { value: this.divergenceTarget.texture },
+            divergenceMap: { value: this.divergenceTarget.texture },
             pressureMapA: { value: this.pressureTargetA.texture },
             pressureMapB: { value: this.pressureTargetB.texture }
         };
@@ -309,6 +319,9 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.hydraulicsTarget);
         this.renderer.render(this.hydraulicsScene, this.camera);
 
+        this.renderer.setRenderTarget(this.injectionTarget);
+        this.renderer.render(this.injectionScene, this.camera);
+
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
@@ -325,7 +338,7 @@ export class RenderingPipeline {
         this.renderer.render(this.pressureScene, this.camera);
 
 
-        const NUM_ITERATIONS = 50;
+        const NUM_ITERATIONS = 55;
 
         for (let i = 0; i < NUM_ITERATIONS; i++) {
 
@@ -339,12 +352,35 @@ export class RenderingPipeline {
 
         }
 
+
         this.renderer.setRenderTarget(this.projectionTarget);
         this.renderer.render(this.projectionScene, this.camera);
 
-        this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];
-        this.renderer.setRenderTarget(this.divergenceTarget);
-        this.renderer.render(this.divergenceScene, this.camera);
+
+        // this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];
+        // this.renderer.setRenderTarget(this.divergenceTarget);
+        // this.renderer.render(this.divergenceScene, this.camera);
+
+        // this.divergenceMaterial.uniforms.velocityMap.value = this.advectionTarget.textures[0];
+        // this.renderer.setRenderTarget(this.divergenceTarget);
+        // this.renderer.render(this.divergenceScene, this.camera);
+
+        // this.projectionMaterial.uniforms.divergenceMap.value = this.divergenceTarget.texture;
+        // this.renderer.setRenderTarget(this.projectionTarget);
+        // this.renderer.render(this.projectionScene, this.camera);
+
+        // const NUM_ITERATIONS = 50;
+
+        // for (let i = 0; i < NUM_ITERATIONS; i++) {
+        //     this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];
+        //     this.renderer.setRenderTarget(this.divergenceTarget);
+        //     this.renderer.render(this.divergenceScene, this.camera);
+
+        //     this.projectionMaterial.uniforms.divergenceMap.value = this.divergenceTarget.texture;
+        //     this.renderer.setRenderTarget(this.projectionTarget);
+        //     this.renderer.render(this.projectionScene, this.camera);
+        // }
+
 
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
@@ -354,6 +390,85 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(null);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.render(this.screenScene, this.camera);
+    }
+
+    async createSolidMesh(textureName: string): Promise<THREE.Mesh> {
+
+        const pathPrefix: string = './assets/textures/';
+        const albedoMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_albedo.png`);
+        const normalMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_normal.png`);
+        const heightMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_height.png`);
+        const specularMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_specular.png`);
+        const shininessMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_shininess.png`);
+        const hydraulicsMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_hydraulics.png`);
+        const emissionsMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_emissions.png`);
+
+        const terrainQuad: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
+        const terrainMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                albedoMap: { value: albedoMap },
+                normalMap: { value: normalMap },
+                heightMap: { value: heightMap },
+                specularMap: { value: specularMap },
+                shininessMap: { value: shininessMap },
+                hydraulicsMap: { value: hydraulicsMap },
+                emissionsMap: { value: emissionsMap }
+            },
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: terrainFragmentShader
+        });
+
+        return new THREE.Mesh(terrainQuad, terrainMaterial);
+    }
+
+    async createFluidMesh(textureName: string): Promise<THREE.Mesh> {
+
+        const pathPrefix: string = './assets/textures/';
+        const albedoMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_albedo.png`);
+        const hydraulicsMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_hydraulics.png`);
+        const emissionsMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_emissions.png`);
+
+        const meshWidth = Math.max(albedoMap.image.width, hydraulicsMap.image.width);
+        const meshHeight = Math.max(albedoMap.image.height, hydraulicsMap.image.height);
+        const fluidQuad: THREE.PlaneGeometry = new THREE.PlaneGeometry(meshWidth, meshHeight);
+        const fluidMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                screenWidth: { value: this.sceneWidth },
+                screenHeight: { value: this.sceneHeight },
+                albedoMap: { value: albedoMap },
+                heightMap: { value: this.gBuffer.textures[2] },
+                hydraulicsMap: { value: hydraulicsMap },
+                emissionsMap: { value: emissionsMap },
+                velocityMap: { value: this.projectionTarget.textures[0] }
+            },
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: hydraulicsFragmentShader
+        });
+
+        return new THREE.Mesh(fluidQuad, fluidMaterial);
+    }
+
+    async createSimpleMesh(textureName: string): Promise<THREE.Mesh> {
+
+        const pathPrefix: string = './assets/textures/';
+        const albedoMap: THREE.Texture = await AssetLoader.loadTexture(`${pathPrefix}${textureName}_albedo.png`);
+        const normalMap: THREE.Texture = await AssetLoader.loadTexture(`${pathPrefix}${textureName}_normal.png`);
+
+        const backgroundQuad: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
+        const backgroundMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                albedoMap: { value: albedoMap },
+                normalMap: { value: normalMap },
+
+            },
+            glslVersion: THREE.GLSL3,
+            vertexShader: defaultVertexShader,
+            fragmentShader: backgroundFragmentShader
+        });
+
+        return new THREE.Mesh(backgroundQuad, backgroundMaterial);
     }
 
     public addEntities(entities: Entity | Entity[]) {
@@ -367,6 +482,7 @@ export class RenderingPipeline {
             this.addEntity(entities);
         }
     }
+
 
     public removeEntities(entities: Entity | Entity[]) {
 
@@ -382,25 +498,34 @@ export class RenderingPipeline {
 
     private async addEntity(entity: Entity) {
 
-        if (entity.getMesh() == null) {
-            await entity.initMesh();
-        }
-
         if (entity instanceof ForegroundEntity) {
-            this.terrainScene.add(entity.getMesh()!);
-            console.log(entity.getMesh()!.position)
+
+            await entity.initMesh(this);
+            this.terrainScene.add(entity.getSolidMesh()!);
+            this.hydraulicsScene.add(entity.getFluidMesh()!);
+
         } else if (entity instanceof BackgroundEntity) {
+
+            await entity.initMesh(this);
             this.backgroundScene.add(entity.getMesh()!);
         }
     }
 
     private removeEntity(entity: Entity) {
 
-        if (entity.getMesh() != null) {
+        if (entity instanceof ForegroundEntity) {
+            
+            if (entity.getSolidMesh()) {
+                this.terrainScene.remove(entity.getSolidMesh()!);
+            }
 
-            if (entity instanceof ForegroundEntity) {
-                this.terrainScene.remove(entity.getMesh()!);
-            } else if (entity instanceof BackgroundEntity) {
+            if (entity.getFluidMesh()) {
+                this.hydraulicsScene.remove(entity.getFluidMesh()!);
+            }
+            
+        } else if (entity instanceof BackgroundEntity) {
+
+            if (entity.getMesh()) {
                 this.backgroundScene.remove(entity.getMesh()!);
             }
         }
@@ -473,6 +598,7 @@ export class RenderingPipeline {
             count: numTargets,
         });
     }
+
 
 }
 

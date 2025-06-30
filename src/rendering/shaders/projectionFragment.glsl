@@ -11,10 +11,12 @@ uniform sampler2D hydraulicsMap;
 uniform sampler2D velocityMap;
 uniform sampler2D matterMap;
 uniform sampler2D pressureMap;
+uniform sampler2D divergenceMap;
 
 layout(location = 0) out vec4 fragColor0;
 layout(location = 1) out vec4 fragColor1;
 
+float OVER_RELAXATION = 0.5;
 
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
@@ -42,10 +44,19 @@ vec4 applyProjection() {
 
     vec4 velocity = texture(velocityMap, UVCenter);
 
-    velocity.x -= (pressureCenter - pressureLeft) *  (solidityCenter * solidityLeft);
-    velocity.y -= (pressureCenter - pressureDown) *  (solidityCenter * solidityDown);
+    velocity.x -= (pressureCenter - pressureLeft) * (solidityCenter * solidityLeft);
+    velocity.y -= (pressureCenter - pressureDown) * (solidityCenter * solidityDown);
 
     return velocity;
+
+    // float divergenceCenter = texture(divergenceMap, UVCenter).r;
+    // float divergenceLeft = texture(divergenceMap, UVLeft).r;
+    // float divergenceDown = texture(divergenceMap, UVDown).r;
+
+    // velocity.x += (divergenceCenter - divergenceLeft) * OVER_RELAXATION * (solidityCenter * solidityLeft) / 2.0;
+    // velocity.y += (divergenceCenter - divergenceDown) * OVER_RELAXATION * (solidityCenter * solidityDown) / 2.0;
+
+    // return velocity;
 }
 
 void main() {

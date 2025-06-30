@@ -2,54 +2,46 @@
 
 import * as THREE from 'three';
 import { Entity } from './Entity';
-import defualtVertexShader from '../rendering/shaders/defaultVertex.glsl';
+import defaultVertexShader from '../rendering/shaders/defaultVertex.glsl';
 import terrainFragmentShader from '../rendering/shaders/terrainFragment.glsl';
+import hydraulicsFragmentShader from '../rendering/shaders/hydraulicFragment.glsl';
+import { Vec3 } from '../math/Vec3';
+import { RenderingPipeline } from '../rendering/RenderingPipeline';
 
 export abstract class ForegroundEntity extends Entity {
 
-    protected async createTHREEMesh(): Promise<THREE.Mesh> {
-        const pathPrefix: string = './assets/textures/';
-        const albedoMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_albedo.png`);
-        const normalMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_normal.png`);
-        const heightMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_height.png`);
-        const specularMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_specular.png`);
-        const shininessMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_shininess.png`);
-        const hydraulicsMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_hydraulics.png`);
-        const emissionsMap: THREE.Texture = await ForegroundEntity.loadWithFallback(`${pathPrefix}${this.textureName}_emissions.png`);
+    protected static FLUID_Z = -20;
 
-        // Create the square that faces the camera
-        const objectGeometry: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
-        const objectMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                albedoMap: { value: albedoMap },
-                normalMap: { value: normalMap },
-                heightMap: { value: heightMap },
-                specularMap: { value: specularMap },
-                shininessMap: { value: shininessMap },
-                hydraulicsMap: { value: hydraulicsMap },
-                emissionsMap: { value: emissionsMap }
-            },
-            glslVersion: THREE.GLSL3,
-            vertexShader: defualtVertexShader,
-            fragmentShader: terrainFragmentShader
-        });
+    protected solidMesh: THREE.Mesh | null = null;
+    protected fluidMesh: THREE.Mesh | null = null;
 
-        return new THREE.Mesh(objectGeometry, objectMaterial);
+    constructor(textureName: string | null = null) {
+
+        super(textureName);
     }
 
-    protected static async loadWithFallback(url: string): Promise<THREE.Texture> {
-        try {
-            // Try loading the primary texture
-            const texture = await ForegroundEntity.loadTexture(url);
-            return texture;
-        } catch (error) {
-            console.error(`❌ Failed to load texture: ${url}, falling back to default...`);
+    async initMesh(pipeline: RenderingPipeline) {
 
-            // If loading the primary texture fails, load the default texture
-            const defaultTextureUrl = `./assets/textures/all_zero.png`;
-            console.log(`Attempting to load default texture: ${defaultTextureUrl}`);
-            return ForegroundEntity.loadTexture(defaultTextureUrl);
-        }
+        this.solidMesh = await pipeline.createSolidMesh(this.textureName);
+        this.solidMesh.position.set(this.positionWorld.x, this.positionWorld.y, this.positionWorld.z);
+
+        this.fluidMesh = await pipeline.createFluidMesh(this.textureName);
+        this.fluidMesh.position.set(this.positionWorld.x, this.positionWorld.y, this.positionWorld.z);
     }
 
+    public getSolidMesh(): THREE.Mesh | null {
+        return this.solidMesh;
+    }
+
+    public getFluidMesh(): THREE.Mesh | null {
+        return this.fluidMesh;
+    }
+
+    protected getVelocity(): Vec3 {
+        return new Vec3(0.0, 0.0, 0.0);
+    }
+
+    protected getDrag(): number {
+        return 0.0;
+    }
 }

@@ -3,6 +3,7 @@ import { InputController } from '../controller/InputController';
 import { PointLight, LightingController } from '../controller/LightingController';
 import { Vec3 } from '../math/Vec3';
 import { Vec2 } from '../math/Vec2';
+import { RenderingPipeline } from '../rendering/RenderingPipeline';
 
 export class MoveableLight extends ActiveEntity {
     private moveSpeed: number = 1;
@@ -18,9 +19,9 @@ export class MoveableLight extends ActiveEntity {
 
     }
 
-    override initMesh() {
+    override initMesh(pipeline: RenderingPipeline) {
         this.createPointLight(new Vec3(1.0, 1.0, 0.5), 0.0, 200);
-        return super.initMesh();
+        return super.initMesh(pipeline);
     }
 
 

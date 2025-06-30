@@ -21,6 +21,7 @@ layout(location = 4) out vec4 fragColor4; // shininess
 layout(location = 5) out vec4 fragColor5; // hydraulics
 layout(location = 6) out vec4 fragColor6; // emissions
 
+const float HEIGHT_SCALING = 8.0;
 
 float NORMALIZATION_FACTOR = 1.0;
 float EPSILON = 0.1; 
@@ -54,7 +55,7 @@ void main() {
 
     fragColor0 = albedo;
     fragColor1 = normal;
-    fragColor2 = vec4(v_positionWorld.z, height, 1.0, 1.0);  // Depth/Height to the third render target
+    fragColor2 = vec4(v_positionWorld.z + (height * HEIGHT_SCALING), 0.0, 0.0, 1.0);
     fragColor3 = specular;
     fragColor4 = shininess;
     fragColor5 = hydraulics;

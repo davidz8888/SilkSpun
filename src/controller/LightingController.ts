@@ -30,7 +30,7 @@ export class LightingController {
 
     private static sunLight: InfiniteLight = {
         direction: new Vec3(0.5, 0.5, 0.4),
-        color: new Vec3(1.0, 1.0, 0.8),
+        color: new Vec3(0.0, 0.0, 0.0),
         shadowDistance: 30.0
     }
 

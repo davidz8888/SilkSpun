@@ -7,8 +7,8 @@ in vec2 v_uv;
 uniform float screenWidth;
 uniform float screenHeight;
 
-uniform sampler2D background; 
-uniform sampler2D foreground;
+uniform sampler2D backgroundMap; 
+uniform sampler2D foregroundMap;
 uniform sampler2D hydraulicsMap;
 uniform sampler2D velocityMap;
 uniform sampler2D matterMap;
@@ -25,8 +25,9 @@ vec4 safeColor(vec4 c) {
 
 void main() {
 
-    vec4 background = texture(background, v_uv);
-    vec4 foreground = texture(foreground, v_uv);
+    vec4 background = texture(backgroundMap, v_uv);
+    vec4 foreground = texture(foregroundMap, v_uv);
+    vec4 hydraulics = texture(hydraulicsMap, v_uv);
     vec4 velocity = texture(velocityMap, v_uv);
     vec4 matter = texture(matterMap, v_uv);
     vec4 divergence = texture(divergenceMap, v_uv);
@@ -36,15 +37,17 @@ void main() {
     vec3 solidsColor = (foreground.a * foreground.rgb) + ((1.0 - foreground.a) * background.rgb);
     vec3 combinedColor = (matter.a * matter.rgb) + ((1.0 - matter.a) * solidsColor);
     
+    // fragColor = foreground;
     // fragColor = vec4(solidsColor.r, solidsColor.g, solidsColor.b, 1.0);
-    // fragColor = vec4(combinedColor, background.a + foreground.a + matter.a);
+    fragColor = vec4(combinedColor, background.a + foreground.a + matter.a);
  
-    // vec4 coloredPressure = vec4(pressureA.r, abs(divergence.r), -pressureA.r, 1.0);
-    vec4 coloredPressure = vec4(pressureA.r, 0.0, -pressureA.r, 1.0);
+    vec4 coloredPressure = vec4(pressureA.r, abs(divergence.r), -pressureA.r, 1.0);
+    // vec4 coloredPressure = vec4(pressureA.r, 0.0, -pressureA.r, 1.0);
 
-    fragColor = vec4(divergence.r, 0.0, -divergence.r, 0.0);
+    // fragColor = vec4(divergence.r, 0.0, -divergence.r, 0.0);
     // fragColor = safeColor(coloredPressure);
-    fragColor = matter;
+    // fragColor = matter;
+    // fragColor = hydraulics;
     // fragColor = safeColor(vec4(abs(velocity.r)));
     // fragColor = vec4(velocity.y);
     // fragColor = velocity;

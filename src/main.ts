@@ -21,7 +21,7 @@ async function main() {
     const sceneHeight = 176;
 
     const gameWorld = new GameWorld()
-    gameWorld.loadScene(new FluidScene());
+    gameWorld.loadScene(new TestScene());
 
     const renderingPipeline = new RenderingPipeline(sceneWidth, sceneHeight);
     console.log(gameWorld.getAllEntities());

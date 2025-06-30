@@ -7,8 +7,8 @@ import { Layer } from '../core/Layer';
 export class TestScene extends Scene {
 
     constructor() {
-        super()
 
+        super()
 
         const moveableLight = new MoveableLight('transparent');
         const lightLayer = new Layer('light_layer', 0);
@@ -16,24 +16,23 @@ export class TestScene extends Scene {
 
         this.addLayer(lightLayer);
 
-        // const fluids = new PassiveEntity('test_fluid');
-        // const fluidLayer = new Layer('fluid_layer', -10);
-        // fluidLayer.addEntity(fluids, 0, 0);
+        const fluids = new PassiveEntity('test_fluid');
+        const fluidLayer = new Layer('fluid_layer', -10);
+        fluidLayer.addEntity(fluids, 0, 0);
 
-        // this.addLayer(fluidLayer);
+        this.addLayer(fluidLayer);
 
         const lotus = new PassiveEntity('lotus');
         const lotusLayer = new Layer('lotus_layer', -20);
-        lotusLayer.addEntity(lotus, -50, -30);
+        lotusLayer.addEntity(lotus, 0, -30);
 
         this.addLayer(lotusLayer);
 
         const buddha = new PassiveEntity('buddha');
         const buddhaLayer = new Layer('buddha_layer', -25);
-        buddhaLayer.addEntity(buddha, -50, 0);
+        buddhaLayer.addEntity(buddha, 0, 0);
 
         this.addLayer(buddhaLayer);
-
 
         const testFloor = new PassiveEntity('test_floor');
         const floorLayer = new Layer('floor_layer', -40);
@@ -46,6 +45,13 @@ export class TestScene extends Scene {
         wallLayer.addEntity(testWall, 0, 0);
 
         this.addLayer(wallLayer);
+
+        
+        const testBackgroud = new PassiveEntity('test_background');
+        const backgroundLayer = new Layer('backgroundLayer', -50);
+        backgroundLayer.addEntity(testBackgroud, 0, 0);
+
+        this.addLayer(backgroundLayer);
     }
 
 }

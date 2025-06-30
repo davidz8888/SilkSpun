@@ -1,62 +1,29 @@
 import * as THREE from 'three';
 import { Vec3 } from '../math/Vec3'
+import { RenderingPipeline } from '../rendering/RenderingPipeline';
 
 export abstract class Entity {
     
-    protected positionWorld: Vec3 | null = null;
+    protected positionWorld: Vec3;
 
-    protected textureName: string | null;
-    protected mesh: THREE.Mesh | null;
+    protected textureName: string;
 
-    public constructor(textureName: string | null = null) {
-        this.textureName = textureName;
 
-        if (textureName == null) {
-            this.textureName = 'default_texture'
-        }
+    constructor(textureName: string | null = null) {
 
-        this.mesh = null;
+        this.textureName = textureName == null ? 'default_texture' : textureName;
+        this.positionWorld = new Vec3(0, 0, 0);
+
     }
 
-    public async initMesh() {
-        this.mesh = await this.createTHREEMesh();
-        this.mesh.position.set(this.positionWorld!.x, this.positionWorld!.y, this.positionWorld!.z);
-    }
-
-    public getMesh(): THREE.Mesh | null{
-        return this.mesh;
-    }
+    abstract initMesh(pipeline: RenderingPipeline): void;
 
     public setPosition(x: number, y: number, z: number) {
         this.positionWorld = new Vec3(x, y, z);
     }
 
-
     public getPosition(): Vec3 | null{
         return this.positionWorld;
     }
 
-    protected abstract createTHREEMesh(): Promise<THREE.Mesh>;
-
-    protected static loadTexture(url: string): Promise<THREE.Texture> {
-
-        const textureLoader: THREE.TextureLoader = new THREE.TextureLoader();
-
-        return new Promise((resolve, reject) => {
-            textureLoader.load(
-                url,
-                (texture: THREE.Texture) => {
-                    texture.minFilter = THREE.NearestFilter;
-                    texture.magFilter = THREE.NearestFilter;
-                    console.log(`✅ Loaded texture successfully: ${url}`);
-                    resolve(texture);
-                },
-                undefined,
-                (error: any) => {
-                    console.error(`❌ Failed to load texture: ${url}`, error);
-                    reject(error);
-                }
-            );
-        });
-    }
 } 
