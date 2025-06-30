@@ -81,6 +81,8 @@ export class RenderingPipeline {
         this.renderer.autoClear = false;
         this.renderer.setSize(sceneWidth, sceneHeight);
         this.renderer.toneMapping = THREE.NoToneMapping;
+
+        console.log(this.renderer.capabilities);
         document.body.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.OrthographicCamera(
