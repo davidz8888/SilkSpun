@@ -1,5 +1,4 @@
-// #version 300 es
-// precision mediump float;
+precision highp float;
 
 // G-buffer inputs
 in vec3 v_positionWorld;

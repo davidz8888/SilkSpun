@@ -8,13 +8,15 @@ uniform float screenWidth;
 uniform float screenHeight;
 
 uniform sampler2D hydraulicsMap;
-uniform sampler2D velocityMap;
-uniform sampler2D matterMap;
+uniform highp sampler2D velocityMap;
+uniform highp sampler2D matterMap;
 
 layout(location = 0) out vec4 fragColor0;
 layout(location = 1) out vec4 fragColor1;
 
 float dT = 1.0 / 60.0;
+
+
 
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;
@@ -37,6 +39,14 @@ vec4 interpolatingSample(sampler2D map, vec2 worldPos) {
     vec2 bottomRightUV = toUV(bottomRightPos);
     vec2 topLeftUV = toUV(topLeftPos);
     vec2 topRightUV = toUV(topRightPos);
+
+    // float texelX = 1.0 / screenWidth;
+    // float texelY = 1.0 / screenHeight;
+
+    // vec2 bottomLeftUV = v_uv;
+    // vec2 bottomRightUV = v_uv + vec2(texelX, 0.0);
+    // vec2 topLeftUV = v_uv + vec2(0.0, texelY);
+    // vec2 topRightUV = v_uv + vec2(texelX, texelY);
 
     vec4 bottomLeftValue = texture(map, bottomLeftUV) * complement.x * complement.y;
     vec4 bottomRightValue = texture(map, bottomRightUV) * offset.x * complement.y;

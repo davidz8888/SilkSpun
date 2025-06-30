@@ -26,11 +26,25 @@ float calculateDivergence() {
     vec2 posUp = posCenter + vec2(0.0, 1.0);
     vec2 posDown = posCenter + vec2(0.0, -1.0);
 
-    vec2 UVCenter = toUV(posCenter);
-    vec2 UVLeft = toUV(posLeft);
-    vec2 UVRight = toUV(posRight);
-    vec2 UVUp = toUV(posUp);
-    vec2 UVDown = toUV(posDown);
+    // vec2 UVCenter = toUV(posCenter);
+    // vec2 UVLeft = toUV(posLeft);
+    // vec2 UVRight = toUV(posRight);
+    // vec2 UVUp = toUV(posUp);
+    // vec2 UVDown = toUV(posDown);
+
+    float texelX = 1.0 / screenWidth;
+    float texelY = 1.0 / screenHeight;
+
+    // vec2 bottomLeftUV = v_uv;
+    // vec2 bottomRightUV = v_uv + vec2(texelX, 0.0);
+    // vec2 topLeftUV = v_uv + vec2(0.0, texelY);
+    // vec2 topRightUV = v_uv + vec2(texelX, texelY);
+
+    vec2 UVCenter = v_uv;
+    vec2 UVLeft = v_uv + vec2(-texelX, 0.0);
+    vec2 UVRight = v_uv + vec2(texelX, 0.0);
+    vec2 UVUp = v_uv + vec2(0.0, texelY);
+    vec2 UVDown = v_uv + vec2(0.0, -texelY);
 
     float velocityLeft = texture(velocityMap, UVCenter).r;
     float velocityRight = texture(velocityMap, UVRight).r;

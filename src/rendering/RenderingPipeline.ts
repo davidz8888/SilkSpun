@@ -324,11 +324,18 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.injectionTarget);
         this.renderer.render(this.injectionScene, this.camera);
 
+        this.renderer.getContext().finish();
+
+
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
+        this.renderer.getContext().finish();
+
         this.renderer.setRenderTarget(this.divergenceTarget);
         this.renderer.render(this.divergenceScene, this.camera);
+
+        this.renderer.getContext().finish();
 
         this.renderer.setRenderTarget(this.pressureTargetA);
         this.renderer.clear();
@@ -339,6 +346,7 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.pressureTargetA);
         this.renderer.render(this.pressureScene, this.camera);
 
+        this.renderer.getContext().finish();
 
         const NUM_ITERATIONS = 55;
 
@@ -348,9 +356,13 @@ export class RenderingPipeline {
             this.renderer.setRenderTarget(this.pressureTargetB);
             this.renderer.render(this.pressureScene, this.camera);
 
+            this.renderer.getContext().finish();
+            
             this.pressureMaterial.uniforms.pressureMap.value = this.pressureTargetB.texture;
             this.renderer.setRenderTarget(this.pressureTargetA);
             this.renderer.render(this.pressureScene, this.camera);
+            
+            this.renderer.getContext().finish();
 
         }
 
@@ -593,12 +605,16 @@ export class RenderingPipeline {
 
 
     private createFloatMRT(width: number, height: number, numTargets: number): THREE.WebGLRenderTarget {
-        return new THREE.WebGLRenderTarget(width, height, {
+        const target: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(width, height, {
             type: THREE.FloatType,
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
             count: numTargets,
         });
+
+        this.renderer.setRenderTarget(target);
+        this.renderer.clear();
+        return target;
     }
 
 

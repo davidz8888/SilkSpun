@@ -1,5 +1,4 @@
-// #version 300 es
-// precision mediump float;
+precision highp float;
 
 in vec3 v_positionWorld;
 in vec2 v_uv;
@@ -41,10 +40,10 @@ void main() {
     // fragColor = vec4(solidsColor.r, solidsColor.g, solidsColor.b, 1.0);
     fragColor = vec4(combinedColor, background.a + foreground.a + matter.a);
  
-    vec4 coloredPressure = vec4(pressureA.r, abs(divergence.r), -pressureA.r, 1.0);
+    // vec4 coloredPressure = vec4(pressureA.r, abs(divergence.r), -pressureA.r, 1.0);
     // vec4 coloredPressure = vec4(pressureA.r, 0.0, -pressureA.r, 1.0);
 
-    // fragColor = vec4(divergence.r, 0.0, -divergence.r, 0.0);
+    fragColor = vec4(-divergence.r, 0.0, divergence.r, 0.0);
     // fragColor = safeColor(coloredPressure);
     // fragColor = matter;
     // fragColor = hydraulics;
