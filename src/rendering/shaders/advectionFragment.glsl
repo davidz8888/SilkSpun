@@ -53,14 +53,18 @@ vec4 interpolatingSample(sampler2D map, vec2 worldPos) {
     vec4 topLeftValue = texture(map, topLeftUV) * complement.x * offset.y;
     vec4 topRightValue = texture(map, topRightUV) * offset.x * offset.y;
     
-    return bottomLeftValue + bottomRightValue + topLeftValue + topRightValue;
+    // return bottomLeftValue + bottomRightValue + topLeftValue + topRightValue;
+    return texture(map, v_uv);
+
 }
 
 
 vec2 backstep() {
 
-    vec2 cellVelocity = texture(velocityMap, v_uv).xy; 
-    return floor(v_positionWorld.xy) - (cellVelocity * dT);
+
+    // vec2 cellVelocity = texture(velocityMap, toUV(floor(v_positionWorld.xy))).xy;
+    vec4 cellVelocity = interpolatingSample(velocityMap, v_positionWorld.xy); 
+    return floor(v_positionWorld.xy) - (cellVelocity.xy * dT);
     // return v_positionWorld.xy - (cellVelocity * dT);
 
 }
@@ -90,9 +94,12 @@ void main() {
     // vec4 matter = interpolatingSample(matterMap, lastPos);
 
     fragColor0 = velocity;
-    fragColor1 = matter;
+    // fragColor1 = matter;
 
+    vec2 base = floor(v_positionWorld.xy);
+    vec2 frac = v_positionWorld.xy - base;
 
+    fragColor1 = vec4(frac.x, frac.y, 0.0, 1.0);
     // fragColor0 = texture(velocityMap, v_uv);
     // fragColor1 = texture(matterMap, v_uv);
 }

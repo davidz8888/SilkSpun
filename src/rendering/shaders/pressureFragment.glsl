@@ -13,7 +13,7 @@ uniform sampler2D pressureMap;
 
 out vec4 fragColor;
 
-float UNDER_RELAXATION = 1.0;
+float UNDER_RELAXATION = 0.95;
 
 vec2 toUV(vec2 worldPos) { 
     return vec2(worldPos.x/screenWidth, worldPos.y/screenHeight) + 0.5;

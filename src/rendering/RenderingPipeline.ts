@@ -238,7 +238,7 @@ export class RenderingPipeline {
             hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
             velocityMap: { value: this.advectionTarget.textures[0] },
             matterMap: { value: this.advectionTarget.textures[1] },
-            pressureMap: { value: this.pressureTargetA.textures[0] },
+            pressureMap: { value: this.pressureTargetA.texture },
             divergenceMap: { value: this.divergenceTarget.texture }
         }
 
@@ -258,7 +258,7 @@ export class RenderingPipeline {
             backgroundMap: { value: this.backgroundTarget.texture },
             foregroundMap: { value: this.lightingTarget.texture },
             hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
-            velocityMap: { value: this.projectionTarget.textures[0] },
+            velocityMap: { value: this.advectionTarget.textures[0] },
             matterMap: { value: this.projectionTarget.textures[1] },
             divergenceMap: { value: this.divergenceTarget.texture },
             pressureMapA: { value: this.pressureTargetA.texture },
@@ -326,7 +326,6 @@ export class RenderingPipeline {
 
         this.renderer.getContext().finish();
 
-
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
@@ -348,7 +347,7 @@ export class RenderingPipeline {
 
         this.renderer.getContext().finish();
 
-        const NUM_ITERATIONS = 55;
+        const NUM_ITERATIONS = 50;
 
         for (let i = 0; i < NUM_ITERATIONS; i++) {
 
@@ -370,10 +369,11 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.projectionTarget);
         this.renderer.render(this.projectionScene, this.camera);
 
+        this.renderer.getContext().finish();
 
-        // this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];
-        // this.renderer.setRenderTarget(this.divergenceTarget);
-        // this.renderer.render(this.divergenceScene, this.camera);
+        this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];
+        this.renderer.setRenderTarget(this.divergenceTarget);
+        this.renderer.render(this.divergenceScene, this.camera);
 
         // this.divergenceMaterial.uniforms.velocityMap.value = this.advectionTarget.textures[0];
         // this.renderer.setRenderTarget(this.divergenceTarget);

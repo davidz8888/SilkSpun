@@ -28,9 +28,16 @@ vec4 applyProjection() {
     vec2 posLeft = posCenter + vec2(-1.0, 0.0);
     vec2 posDown = posCenter + vec2(0.0, -1.0);
 
-    vec2 UVCenter = toUV(posCenter);
-    vec2 UVLeft = toUV(posLeft);
-    vec2 UVDown = toUV(posDown);
+    // vec2 UVCenter = toUV(posCenter);
+    // vec2 UVLeft = toUV(posLeft);
+    // vec2 UVDown = toUV(posDown);
+
+    float texelX = 1.0 / screenWidth;
+    float texelY = 1.0 / screenHeight;
+
+    vec2 UVCenter = v_uv;
+    vec2 UVLeft = v_uv + vec2(-texelX, 0.0);
+    vec2 UVDown = v_uv + vec2(0.0, -texelY);
 
     float solidityCenter = texture(hydraulicsMap, UVCenter).b;
     float solidityLeft = texture(hydraulicsMap, UVLeft).b;

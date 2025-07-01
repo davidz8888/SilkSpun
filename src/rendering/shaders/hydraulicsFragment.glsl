@@ -19,9 +19,9 @@ uniform float dragCoefficient;
 layout(location = 0) out vec4 fragColor0;
 layout(location = 1) out vec4 fragColor1;
 
-float FLUID_Z = -30.0;
+float FLUID_Z = -0.0;
 
-float ACCELERATION_SCALING = 10.0;
+float ACCELERATION_SCALING = 1.0;
 float EMISSIONS_SCALING = 0.1;
 
 float EPSILON = 0.1; 

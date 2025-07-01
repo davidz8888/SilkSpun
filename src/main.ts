@@ -43,7 +43,8 @@ async function main() {
     //     requestAnimationFrame(gameLoop);
     // }
 
-    const targetFPS = 1000;
+    // const targetFPS = 0.5;
+    const targetFPS = 100;
     const minFrameTime = 1000 / targetFPS; // In ms
 
     function gameLoop(currentTime: number) {
