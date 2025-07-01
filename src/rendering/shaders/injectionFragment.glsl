@@ -57,7 +57,7 @@ vec2 calculateVelocities() {
         return cellAcceleration;
 
     } else {
-        return cellVelocity;
+        return cellAcceleration;
     }
     // return cellVelocity;
 }
