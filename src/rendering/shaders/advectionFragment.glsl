@@ -2,7 +2,7 @@ precision highp float;
 
 in highp vec3 v_positionWorld;
 in vec3 v_viewPositionWorld;
-in vec2 v_uv;
+in highp vec2 v_uv;
 
 uniform float screenWidth;
 uniform float screenHeight;
@@ -210,19 +210,19 @@ vec2 backstep() {
 
 void main() {
 
-    vec2 velocity;
+    vec4 velocity;
     vec4 matter;
 
     if (texture(hydraulicsMap, v_uv).b == 0.0) {
 
-        velocity = vec2(0.0, 0.0);
+        velocity = vec4(0.0, 0.0, 0.0, 0.0);
         matter = vec4(0.0, 0.0, 0.0, 0.0);
 
     } else {
 
         vec2 lastPos = backstep();
 
-        velocity = interpolateMAC(lastPos);
+        velocity = interpolatingSample(velocityMap, lastPos);
         // velocity = interpolatingSample(velocityMap, lastPos).xy;
         matter = interpolatingSample(matterMap, lastPos);
     }
