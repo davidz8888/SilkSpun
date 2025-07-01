@@ -6,6 +6,7 @@ import { Layer } from '../core/Layer';
 export class FluidScene extends Scene {
 
     constructor() {
+
         super()
 
         const fluids = new PassiveEntity('test_fluid');
@@ -13,6 +14,5 @@ export class FluidScene extends Scene {
         fluidLayer.addEntity(fluids, 0, 0);
 
         this.addLayer(fluidLayer);
-
     }
 }

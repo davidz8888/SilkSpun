@@ -347,7 +347,7 @@ export class RenderingPipeline {
 
         this.renderer.getContext().finish();
 
-        const NUM_ITERATIONS = 50;
+        const NUM_ITERATIONS = 25;
 
         for (let i = 0; i < NUM_ITERATIONS; i++) {
 

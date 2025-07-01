@@ -52,8 +52,8 @@ void main() {
     
     // fragColor = safeColor(coloredPressure);
     fragColor = matter;
-    fragColor = coloredDivergence;
-    fragColor = coloredVelocity;
+    // fragColor = coloredDivergence * 5.0;
+    // fragColor = coloredVelocity;
     // fragColor = coloredPressure;
     // fragColor = hydraulics;
     // fragColor = safeColor(vec4(abs(velocity.r)));

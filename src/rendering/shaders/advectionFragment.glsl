@@ -25,6 +25,7 @@ vec2 toUV(vec2 worldPos) {
 
 vec4 interpolatingSample(sampler2D map, vec2 worldPos) {
 
+    worldPos -= vec2(0.5, 0.5);
     vec2 base = floor(worldPos);
     vec2 offset = worldPos - base;
     vec2 complement = 1.0 - offset;
@@ -55,6 +56,70 @@ vec4 interpolatingSample(sampler2D map, vec2 worldPos) {
     return bottomLeftValue + bottomRightValue + topLeftValue + topRightValue;
     // return texture(map, v_uv);
 
+}
+
+
+float interpolateVelocityX(vec2 worldPos) {
+
+    vec2 base = floor(worldPos - vec2(0.5, 0.5));
+    vec2 frac = worldPos - base - vec2(0.5, 0.5);
+    vec2 complement = 1.0 - frac;
+
+    vec2 posBottomLeft = base;
+    vec2 posBottomRight = base + vec2(1.0, 0.0);
+    vec2 posTopLeft = base + vec2(0.0, 1.0);
+    vec2 posTopRight = base + vec2(1.0, 1.0);
+
+    vec2 UVBottomLeft = toUV(posBottomLeft);
+    vec2 UVBottomRight = toUV(posBottomRight);
+    vec2 UVTopLeft = toUV(posTopLeft);
+    vec2 UVTopRight = toUV(posTopRight);
+
+    float velocityBottomLeft = texture(velocityMap, UVBottomLeft).x;
+    float velocityBottomRight = texture(velocityMap, UVBottomRight).x;
+    float velocityTopLeft = texture(velocityMap, UVTopLeft).x;
+    float velocityTopRight = texture(velocityMap, UVTopRight).x;
+    
+    float weightedBottomLeft = velocityBottomLeft * complement.x * complement.y;
+    float weightedBottomRight = velocityBottomRight * frac.x * complement.y;
+    float weightedTopLeft = velocityTopLeft * complement.x * frac.y;
+    float weightedTopRight = velocityTopRight * frac.x * frac.y;
+
+    return weightedBottomLeft + weightedBottomRight + weightedTopLeft + weightedTopRight;
+}
+
+float interpolateVelocityY(vec2 worldPos) {
+
+    vec2 base = floor(worldPos - vec2(0.5, 0.5));
+    vec2 frac = worldPos - base - vec2(0.5, 0.5);
+    vec2 complement = 1.0 - frac;
+
+    vec2 posBottomLeft = base;
+    vec2 posBottomRight = base + vec2(1.0, 0.0);
+    vec2 posTopLeft = base + vec2(0.0, 1.0);
+    vec2 posTopRight = base + vec2(1.0, 1.0);
+
+    vec2 UVBottomLeft = toUV(posBottomLeft);
+    vec2 UVBottomRight = toUV(posBottomRight);
+    vec2 UVTopLeft = toUV(posTopLeft);
+    vec2 UVTopRight = toUV(posTopRight);
+
+    float velocityBottomLeft = texture(velocityMap, UVBottomLeft).y;
+    float velocityBottomRight = texture(velocityMap, UVBottomRight).y;
+    float velocityTopLeft = texture(velocityMap, UVTopLeft).y;
+    float velocityTopRight = texture(velocityMap, UVTopRight).y;
+
+    float weightedBottomLeft = velocityBottomLeft * complement.x * complement.y;
+    float weightedBottomRight = velocityBottomRight * frac.x * complement.y;
+    float weightedTopLeft = velocityTopLeft * complement.x * frac.y;
+    float weightedTopRight = velocityTopRight * frac.x * frac.y;
+
+    return weightedBottomLeft + weightedBottomRight + weightedTopLeft + weightedTopRight;
+}
+
+vec2 interpolateMAC(vec2 worldPos) {
+
+    return vec2(interpolateVelocityX(worldPos), interpolateVelocityY(worldPos));
 }
 
 
@@ -137,7 +202,7 @@ vec2 interpolateVelocity(vec2 worldPos) {
 
 vec2 backstep() {
 
-    vec2 cellVelocity = interpolateVelocity(v_positionWorld.xy); 
+    vec2 cellVelocity = interpolatingSample(velocityMap, v_positionWorld.xy).xy; 
     return v_positionWorld.xy - (cellVelocity * dT);
     // return v_positionWorld.xy;
 }
@@ -157,7 +222,8 @@ void main() {
 
         vec2 lastPos = backstep();
 
-        velocity = interpolateVelocity(lastPos);
+        velocity = interpolateMAC(lastPos);
+        // velocity = interpolatingSample(velocityMap, lastPos).xy;
         matter = interpolatingSample(matterMap, lastPos);
     }
 
@@ -166,12 +232,12 @@ void main() {
     // vec4 velocity = interpolatingSample(velocityMap, lastPos);
     // vec4 matter = interpolatingSample(matterMap, lastPos);
 
+    vec2 currVelocity = interpolatingSample(velocityMap, v_positionWorld.xy).xy;
+
+
+    // fragColor0 = texture(velocityMap, toUV(v_positionWorld.xy));
     fragColor0 = vec4(velocity.x, velocity.y, 0.0, 1.0);
-    // fragColor0 = texture(velocityMap, v_uv);
     fragColor1 = matter;
 
 
-    // fragColor1 = vec4(frac.x, frac.y, 0.0, 1.0);
-    // fragColor0 = texture(velocityMap, v_uv);
-    // fragColor1 = texture(matterMap, v_uv);
 }

@@ -10,6 +10,7 @@ export abstract class ActiveEntity extends ForegroundEntity{
     private velocity: Vec3 = new Vec3(0.0, 0.0, 0.0);
 
     syncMeshState() {
+        
         if (this.solidMesh != null) {
             this.solidMesh.position.x = this.positionWorld!.x;
             this.solidMesh.position.y = this.positionWorld!.y;
