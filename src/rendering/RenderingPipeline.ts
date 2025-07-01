@@ -83,6 +83,10 @@ export class RenderingPipeline {
         this.renderer.toneMapping = THREE.NoToneMapping;
 
         console.log(this.renderer.capabilities);
+        const isWebGL2 = this.renderer.capabilities.isWebGL2;
+
+        console.log("Running WebGL version:", isWebGL2 ? "WebGL2" : "WebGL1");
+        console.log(this.renderer.extensions.get("EXT_color_buffer_float")); // must not be null
         document.body.appendChild(this.renderer.domElement);
 
         this.camera = new THREE.OrthographicCamera(
@@ -98,7 +102,7 @@ export class RenderingPipeline {
         this.gBuffer = this.createFloatMRT(sceneWidth, sceneHeight, 7);
         this.lightingTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.hydraulicsTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
-        this.injectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
+        this.injectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 3);
         this.advectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
         this.divergenceTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.pressureTargetA = this.createFloatMRT(sceneWidth, sceneHeight, 1);
@@ -258,7 +262,10 @@ export class RenderingPipeline {
             backgroundMap: { value: this.backgroundTarget.texture },
             foregroundMap: { value: this.lightingTarget.texture },
             hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
-            velocityMap: { value: this.advectionTarget.textures[0] },
+            initialVelocityMap: { value: this.injectionTarget.textures[2] },
+            injectedVelocityMap: { value: this.injectionTarget.textures[0] },
+            advectedVelocityMap: { value: this.advectionTarget.textures[0] },
+            projectedVelocityMap: { value: this.projectionTarget.textures[0] },
             matterMap: { value: this.projectionTarget.textures[1] },
             divergenceMap: { value: this.divergenceTarget.texture },
             pressureMapA: { value: this.pressureTargetA.texture },
@@ -291,6 +298,8 @@ export class RenderingPipeline {
 
         // LightingController.updateDayNight();
 
+        this.renderer.getContext().finish();
+
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);
         this.renderer.render(this.backgroundScene, this.camera);
@@ -318,14 +327,19 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
+        this.renderer.getContext().finish();
+
         this.renderer.setRenderTarget(this.hydraulicsTarget);
+        this.renderer.clear();
         this.renderer.render(this.hydraulicsScene, this.camera);
+
+        this.renderer.getContext().finish();
 
         this.renderer.setRenderTarget(this.injectionTarget);
         this.renderer.render(this.injectionScene, this.camera);
 
         this.renderer.getContext().finish();
-
+        
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
@@ -341,6 +355,9 @@ export class RenderingPipeline {
 
         this.renderer.setRenderTarget(this.pressureTargetB);
         this.renderer.clear();
+
+        this.renderer.getContext().finish();
+
 
         this.renderer.setRenderTarget(this.pressureTargetA);
         this.renderer.render(this.pressureScene, this.camera);
@@ -395,15 +412,17 @@ export class RenderingPipeline {
         //     this.renderer.render(this.projectionScene, this.camera);
         // }
 
-
+        this.renderer.getContext().finish();
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
         this.renderer.render(this.compositeScene, this.camera);
+        this.renderer.getContext().finish();
 
         // Screen Pass
         this.renderer.setRenderTarget(null);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.render(this.screenScene, this.camera);
+        this.renderer.getContext().finish();
     }
 
     async createSolidMesh(textureName: string): Promise<THREE.Mesh> {
@@ -485,18 +504,14 @@ export class RenderingPipeline {
         return new THREE.Mesh(backgroundQuad, backgroundMaterial);
     }
 
-    public addEntities(entities: Entity | Entity[]) {
+    async addEntities(entities: Entity | Entity[]): Promise<void> {
 
-        if (Array.isArray(entities)) {
-            entities.forEach(entity => {
-                this.addEntity(entity);
-            });
-
-        } else {
-            this.addEntity(entities);
-        }
+    if (Array.isArray(entities)) {
+        await Promise.all(entities.map(entity => this.addEntity(entity)));
+    } else {
+        await this.addEntity(entities);
     }
-
+}
 
     public removeEntities(entities: Entity | Entity[]) {
 
@@ -604,19 +619,33 @@ export class RenderingPipeline {
     }
 
 
+
     private createFloatMRT(width: number, height: number, numTargets: number): THREE.WebGLRenderTarget {
         const target: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(width, height, {
             type: THREE.FloatType,
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
+            depthBuffer: false,
             count: numTargets,
         });
-
+        
+        for (let i = 0; i < numTargets; i++) {
+            target.textures[i].generateMipmaps = false
+        }
         this.renderer.setRenderTarget(target);
         this.renderer.clear();
         return target;
     }
 
-
+    private logTextureInfo(texture: THREE.Texture) {
+        console.log(`Size: ${texture.image?.width} x ${texture.image?.height}`);
+        console.log(`Type:`, texture.type); // Should be THREE.FloatType = 1015
+        console.log(`Format:`, texture.format); // Should be THREE.RGBAFormat = 1023
+        console.log(`MinFilter:`, texture.minFilter); // Should be NearestFilter = 1003
+        console.log(`MagFilter:`, texture.magFilter); // Should be NearestFilter or LinearFilter
+        console.log(`GenerateMipmaps:`, texture.generateMipmaps);
+        console.log(`WrapS:`, texture.wrapS);
+        console.log(`WrapT:`, texture.wrapT);
+}
 }
 

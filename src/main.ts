@@ -25,7 +25,7 @@ async function main() {
 
     const renderingPipeline = new RenderingPipeline(sceneWidth, sceneHeight);
     console.log(gameWorld.getAllEntities());
-    renderingPipeline.addEntities(gameWorld.getAllEntities());
+    await renderingPipeline.addEntities(gameWorld.getAllEntities());
 
     let lastTime = performance.now(); // 👈 Track previous timestamp
 
@@ -44,7 +44,7 @@ async function main() {
     // }
 
     // const targetFPS = 0.5;
-    const targetFPS = 10000;
+    const targetFPS = 1;
     const minFrameTime = 1000 / targetFPS; // In ms
 
     function gameLoop(currentTime: number) {

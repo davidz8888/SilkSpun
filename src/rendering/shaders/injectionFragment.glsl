@@ -14,6 +14,7 @@ uniform sampler2D matterMap;
 
 layout(location = 0) out vec4 fragColor0;
 layout(location = 1) out vec4 fragColor1;
+layout(location = 2) out vec4 fragColor2;
 
 float NORMALIZATION_FACTOR = 100.0;
 
@@ -75,4 +76,5 @@ void main() {
     
     fragColor0 = velocity;
     fragColor1 = calculateEmissions();
+    fragColor2 = texture(velocityMap, v_uv);
 }
