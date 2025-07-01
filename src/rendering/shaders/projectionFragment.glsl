@@ -68,8 +68,8 @@ vec4 applyProjection() {
 
 void main() {
 
-    // vec4 velocity = applyProjection();
-    vec4 velocity = texture(velocityMap, v_uv);
+    vec4 velocity = applyProjection();
+    // vec4 velocity = texture(velocityMap, v_uv);
     vec4 matter = texture(matterMap, v_uv);
 
     fragColor0 = velocity;
