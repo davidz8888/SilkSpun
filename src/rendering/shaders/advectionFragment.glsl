@@ -235,8 +235,8 @@ void main() {
     vec2 currVelocity = interpolatingSample(velocityMap, v_positionWorld.xy).xy;
 
 
-    // fragColor0 = texture(velocityMap, toUV(v_positionWorld.xy));
-    fragColor0 = vec4(velocity.x, velocity.y, 0.0, 1.0);
+    fragColor0 = texture(velocityMap, toUV(v_positionWorld.xy));
+    // fragColor0 = vec4(velocity.x, velocity.y, 0.0, 1.0);
     fragColor1 = matter;
 
 
