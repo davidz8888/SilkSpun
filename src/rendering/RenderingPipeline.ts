@@ -298,7 +298,7 @@ export class RenderingPipeline {
 
         // LightingController.updateDayNight();
 
-        this.renderer.getContext().finish();
+
 
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);
@@ -327,28 +327,28 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.lightingTarget);
         this.renderer.render(this.lightingScene, this.camera);
 
-        this.renderer.getContext().finish();
+
 
         this.renderer.setRenderTarget(this.hydraulicsTarget);
         this.renderer.clear();
         this.renderer.render(this.hydraulicsScene, this.camera);
 
-        this.renderer.getContext().finish();
+
 
         this.renderer.setRenderTarget(this.injectionTarget);
         this.renderer.render(this.injectionScene, this.camera);
 
-        this.renderer.getContext().finish();
+
         
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
-        this.renderer.getContext().finish();
+
 
         this.renderer.setRenderTarget(this.divergenceTarget);
         this.renderer.render(this.divergenceScene, this.camera);
 
-        this.renderer.getContext().finish();
+
 
         this.renderer.setRenderTarget(this.pressureTargetA);
         this.renderer.clear();
@@ -356,13 +356,13 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.pressureTargetB);
         this.renderer.clear();
 
-        this.renderer.getContext().finish();
+
 
 
         this.renderer.setRenderTarget(this.pressureTargetA);
         this.renderer.render(this.pressureScene, this.camera);
 
-        this.renderer.getContext().finish();
+
 
         const NUM_ITERATIONS = 25;
 
@@ -372,13 +372,13 @@ export class RenderingPipeline {
             this.renderer.setRenderTarget(this.pressureTargetB);
             this.renderer.render(this.pressureScene, this.camera);
 
-            this.renderer.getContext().finish();
+    
             
             this.pressureMaterial.uniforms.pressureMap.value = this.pressureTargetB.texture;
             this.renderer.setRenderTarget(this.pressureTargetA);
             this.renderer.render(this.pressureScene, this.camera);
             
-            this.renderer.getContext().finish();
+    
 
         }
 
@@ -386,7 +386,7 @@ export class RenderingPipeline {
         this.renderer.setRenderTarget(this.projectionTarget);
         this.renderer.render(this.projectionScene, this.camera);
 
-        this.renderer.getContext().finish();
+
 
         this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];
         this.renderer.setRenderTarget(this.divergenceTarget);
@@ -412,17 +412,17 @@ export class RenderingPipeline {
         //     this.renderer.render(this.projectionScene, this.camera);
         // }
 
-        this.renderer.getContext().finish();
+
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
         this.renderer.render(this.compositeScene, this.camera);
-        this.renderer.getContext().finish();
+
 
         // Screen Pass
         this.renderer.setRenderTarget(null);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.render(this.screenScene, this.camera);
-        this.renderer.getContext().finish();
+
     }
 
     async createSolidMesh(textureName: string): Promise<THREE.Mesh> {

@@ -66,7 +66,7 @@ void main() {
     // fragColor = velocityToColor(initialVelocity);
     // fragColor = velocityToColor(injectedVelocity);
     // fragColor = velocityToColor(advectedVelocity);
-    // fragColor = velocityToColor(projectedVelocity);
+    fragColor = velocityToColor(projectedVelocity);
 
     // fragColor = coloredPressure;
     // fragColor = hydraulics;
