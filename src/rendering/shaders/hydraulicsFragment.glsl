@@ -21,7 +21,7 @@ layout(location = 1) out vec4 fragColor1;
 
 float FLUID_Z = 0.0;
 
-float ACCELERATION_SCALING = 100.0;
+float ACCELERATION_SCALING = 30.0;
 float EMISSIONS_SCALING = 0.1;
 
 float EPSILON = 0.1; 
