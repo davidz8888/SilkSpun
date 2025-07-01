@@ -64,9 +64,9 @@ void main() {
     fragColor = matter;
     // fragColor = coloredDivergence * 5.0;
     // fragColor = velocityToColor(initialVelocity);
-    fragColor = velocityToColor(injectedVelocity);
+    // fragColor = velocityToColor(injectedVelocity);
     // fragColor = velocityToColor(advectedVelocity);
-    // fragColor = velocityToColor(projectedVelocity);
+    fragColor = velocityToColor(projectedVelocity);
 
     // fragColor = coloredPressure;
     // fragColor = hydraulics;
