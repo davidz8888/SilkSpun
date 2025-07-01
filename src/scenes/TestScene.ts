@@ -41,7 +41,7 @@ export class TestScene extends Scene {
         this.addLayer(floorLayer);
 
         const testWall = new PassiveEntity('test_wall');
-        const wallLayer = new Layer('wall_layer', -50);
+        const wallLayer = new Layer('wall_layer', -45);
         wallLayer.addEntity(testWall, 0, 0);
 
         this.addLayer(wallLayer);
