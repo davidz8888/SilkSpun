@@ -223,21 +223,11 @@ void main() {
         vec2 lastPos = backstep();
 
         velocity = interpolatingSample(velocityMap, lastPos);
-        // velocity = interpolatingSample(velocityMap, lastPos).xy;
         matter = interpolatingSample(matterMap, lastPos);
     }
 
-    // vec2 lastPos = backstep();
-
-    // vec4 velocity = interpolatingSample(velocityMap, lastPos);
-    // vec4 matter = interpolatingSample(matterMap, lastPos);
-
-    vec2 currVelocity = interpolatingSample(velocityMap, v_positionWorld.xy).xy;
-
-
-    fragColor0 = texture(velocityMap, toUV(v_positionWorld.xy));
+    fragColor0 = texture(velocityMap, v_uv);
     // fragColor0 = vec4(velocity.x, velocity.y, 0.0, 1.0);
     fragColor1 = matter;
-
-
+    // fragColor1 = texture(matterMap, v_uv);
 }

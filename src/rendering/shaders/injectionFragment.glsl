@@ -53,8 +53,8 @@ vec2 calculateVelocities() {
     cellVelocity.x *= solidityCenter * solidityLeft;
     cellVelocity.y *= solidityCenter * solidityDown;
 
-    if (cellAcceleration.x != 0.0) {
-        return cellAcceleration;
+    if (cellAcceleration.x == 1.0) {
+        return vec2(300.0, 0.0);
 
     } else {
         return cellAcceleration;
