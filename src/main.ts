@@ -44,7 +44,7 @@ async function main() {
     // }
 
     // const targetFPS = 0.5;
-    const targetFPS = 100;
+    const targetFPS = 10000;
     const minFrameTime = 1000 / targetFPS; // In ms
 
     function gameLoop(currentTime: number) {
