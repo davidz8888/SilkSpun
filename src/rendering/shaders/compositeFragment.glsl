@@ -52,7 +52,7 @@ void main() {
     vec3 combinedColor = (matter.a * matter.rgb) + ((1.0 - matter.a) * solidsColor);
     
     // fragColor = foreground;
-    // fragColor = vec4(solidsColor.r, solidsColor.g, solidsColor.b, 1.0);
+    fragColor = vec4(solidsColor.r, solidsColor.g, solidsColor.b, 1.0);
     // fragColor = vec4(combinedColor, background.a + foreground.a + matter.a);
            
 
@@ -66,7 +66,7 @@ void main() {
     // fragColor = velocityToColor(initialVelocity);
     // fragColor = velocityToColor(injectedVelocity);
     // fragColor = velocityToColor(advectedVelocity);
-    fragColor = velocityToColor(projectedVelocity);
+    // fragColor = velocityToColor(projectedVelocity);
 
     // fragColor = coloredPressure;
     // fragColor = hydraulics;

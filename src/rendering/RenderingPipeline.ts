@@ -625,7 +625,6 @@ export class RenderingPipeline {
             type: THREE.FloatType,
             minFilter: THREE.NearestFilter,
             magFilter: THREE.NearestFilter,
-            depthBuffer: false,
             count: numTargets,
         });
         
