@@ -53,7 +53,8 @@ vec2 calculateVelocities() {
     cellVelocity.x *= solidityCenter * solidityLeft;
     cellVelocity.y *= solidityCenter * solidityDown;
 
-    return cellVelocity;
+    return cellAcceleration;
+    // return cellVelocity;
 }
 
 

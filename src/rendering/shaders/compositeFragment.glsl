@@ -60,7 +60,7 @@ void main() {
     vec4 coloredDivergence = vec4(-divergence.r, 0.0, divergence.r, 0.0);
     
     
-    // fragColor = safeColor(coloredPressure);
+    fragColor = safeColor(coloredPressure);
     fragColor = matter;
     // fragColor = coloredDivergence * 5.0;
     // fragColor = velocityToColor(initialVelocity);
