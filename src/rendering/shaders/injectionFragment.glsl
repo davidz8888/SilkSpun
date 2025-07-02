@@ -16,7 +16,8 @@ layout(location = 0) out vec4 fragColor0;
 layout(location = 1) out vec4 fragColor1;
 layout(location = 2) out vec4 fragColor2;
 
-float NORMALIZATION_FACTOR = 100.0;
+float MATTER_DECAY = 0.001;
+float VISCOSITY = 0.001;
 
 float dT = 1.0 / 60.0;
 
@@ -38,6 +39,9 @@ vec2 calculateVelocities() {
     vec2 UVDown = toUV(posDown);
 
     vec2 cellVelocity = texture(velocityMap, UVCenter).xy;
+
+    cellVelocity = mix(cellVelocity, vec2(0.0), VISCOSITY);
+
     vec2 cellAcceleration = texture(hydraulicsMap, UVCenter).xy;
 
     float solidityCenter = texture(hydraulicsMap, UVCenter).b;
@@ -61,8 +65,9 @@ vec2 calculateVelocities() {
 vec4 calculateEmissions() {
     
     vec4 matter = texture(matterMap, v_uv);
-
     matter = clamp(matter, 0.0, 1.0);
+    matter = mix(matter, vec4(0.0), MATTER_DECAY);
+
     vec4 emission = texture(emissionsMap, v_uv);
 
     matter += emission;
