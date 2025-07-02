@@ -23,20 +23,20 @@ export class TestScene extends Scene {
         // this.addLayer(fluidLayer);
 
         const lotus = new PassiveEntity('lotus');
-        const lotusLayer = new Layer('lotus_layer', -20);
+        const lotusLayer = new Layer('lotus_layer', -40);
         lotusLayer.addEntity(lotus, -40, -34);
 
         this.addLayer(lotusLayer);
 
         const buddha = new PassiveEntity('buddha');
-        const buddhaLayer = new Layer('buddha_layer', -25);
+        const buddhaLayer = new Layer('buddha_layer', -44);
         buddhaLayer.addEntity(buddha, -40, -4);
 
         this.addLayer(buddhaLayer);
 
 
 
-        const wall = new PassiveEntity('temple_wall', 64);
+        const wall = new PassiveEntity('temple_wall', 32);
         const wallLayer = new Layer('wall_layer', -45);
         wallLayer.addEntity(wall, 0, 0);
 
