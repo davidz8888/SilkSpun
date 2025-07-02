@@ -298,8 +298,6 @@ export class RenderingPipeline {
 
         // LightingController.updateDayNight();
 
-
-
         // Background Pass
         this.renderer.setRenderTarget(this.backgroundTarget);
         this.renderer.render(this.backgroundScene, this.camera);
@@ -425,7 +423,7 @@ export class RenderingPipeline {
 
     }
 
-    async createSolidMesh(textureName: string): Promise<THREE.Mesh> {
+    async createSolidMesh(textureName: string, heightScaling: number): Promise<THREE.Mesh> {
 
         const pathPrefix: string = './assets/textures/';
         const albedoMap: THREE.Texture = await AssetLoader.loadWithFallback(`${pathPrefix}${textureName}_albedo.png`);
@@ -439,6 +437,7 @@ export class RenderingPipeline {
         const terrainQuad: THREE.PlaneGeometry = new THREE.PlaneGeometry(albedoMap.image.width, albedoMap.image.height);
         const terrainMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
             uniforms: {
+                heightScaling: { value: heightScaling },
                 albedoMap: { value: albedoMap },
                 normalMap: { value: normalMap },
                 heightMap: { value: heightMap },
@@ -560,6 +559,29 @@ export class RenderingPipeline {
         }
     }
 
+    private static convertSimpleLights(simpleLights: PointLight[]): any[] {
+        return simpleLights.map(simpleLight => ({
+            positionWorld: RenderingPipeline.convertToThreeVec3(simpleLight.positionWorld),
+            color: RenderingPipeline.convertToThreeVec3(simpleLight.color),
+            falloff: simpleLight.falloff,
+            radius: simpleLight.radius,
+        }));
+    }
+
+    private static padSimpleLights(simpleLights: any[]) {
+        const defaultLight = {
+            positionWorld: new THREE.Vector3(0, 0, 0),
+            color: new THREE.Vector3(0, 0, 0),
+            falloff: 1,
+            radius: 0
+        };
+
+        const MAX_SIMPLELIGHTS = 100
+
+        while (simpleLights.length < MAX_SIMPLELIGHTS) {
+            simpleLights.push(defaultLight);
+        }
+    }
 
     private static convertPointLights(pointLights: PointLight[]): any[] {
         return pointLights.map(pointLight => ({
@@ -617,8 +639,6 @@ export class RenderingPipeline {
     private static convertToThreeVec3(v: Vec3): THREE.Vector3 {
         return new THREE.Vector3(v.x, v.y, v.z);
     }
-
-
 
     private createFloatMRT(width: number, height: number, numTargets: number): THREE.WebGLRenderTarget {
         const target: THREE.WebGLRenderTarget = new THREE.WebGLRenderTarget(width, height, {

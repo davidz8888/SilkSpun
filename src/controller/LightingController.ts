@@ -1,5 +1,12 @@
 import { Vec3 } from '../math/Vec3';
 
+export interface SimpleLight {
+    positionWorld: Vec3;
+    color: Vec3;
+    falloff: number;
+    radius: number;
+}
+
 export interface PointLight {
     positionWorld: Vec3;
     color: Vec3;
@@ -29,8 +36,8 @@ export class LightingController {
     };;
 
     private static sunLight: InfiniteLight = {
-        direction: new Vec3(0.5, 0.5, 0.4),
-        color: new Vec3(0.0, 0.0, 0.0),
+        direction: new Vec3(0.5, 0.5, 0.2),
+        color: new Vec3(1.0, 0.0, 0.0),
         shadowDistance: 30.0
     }
 

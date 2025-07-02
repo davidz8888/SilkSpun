@@ -7,23 +7,25 @@ import { RenderingPipeline } from '../rendering/RenderingPipeline';
 
 export class MoveableLight extends ActiveEntity {
     private moveSpeed: number = 1;
-    private input: InputController | null = null;
     private pointLight: PointLight | null = null;
     private isDragging: boolean = false;
     private dragStartPosition: Vec2 | null = null;
     private lastMousePosition: Vec2 | null = null;
 
+    // Keep references for deregistration if needed
+    private mouseDownHandler = (e: MouseEvent) => this.onMouseDown(e);
+    private mouseMoveHandler = (e: MouseEvent) => this.onMouseMove(e);
+    private mouseUpHandler = () => this.onMouseUp();
+
     constructor(textureName: string | null = null) {
         super(textureName);
         this.setupMouseEvents();
-
     }
 
     override initMesh(pipeline: RenderingPipeline) {
         this.createPointLight(new Vec3(1.0, 1.0, 0.5), 0.0, 200);
         return super.initMesh(pipeline);
     }
-
 
     override setPosition(x: number, y: number, z: number): void {
         super.setPosition(x, y, z);
@@ -56,42 +58,39 @@ export class MoveableLight extends ActiveEntity {
         if (InputController.isKeyDown('a')) moveVec.x -= this.moveSpeed;
         if (InputController.isKeyDown('d')) moveVec.x += this.moveSpeed;
 
-        // Apply key movement
-        this.positionWorld!.add(moveVec);
+        this.positionWorld.add(moveVec);
         this.pointLight!.positionWorld.add(moveVec);
 
-        // If dragging, update the light position based on mouse position
+        // Handle dragging
         if (this.isDragging && this.lastMousePosition) {
-            const mouseDisplacementX = this.lastMousePosition.x - this.positionWorld!.x;
-            const mouseDisplacementY = this.lastMousePosition.y - this.positionWorld!.y;
+            const dx = this.lastMousePosition.x - this.positionWorld.x;
+            const dy = this.lastMousePosition.y - this.positionWorld.y;
+            const lightMove = new Vec2(dx / 4, dy / 4);
 
-            const lightMove = new Vec2(mouseDisplacementX / 4, mouseDisplacementY / 4);
-            this.positionWorld!.addVec2(lightMove);
+            this.positionWorld.addVec2(lightMove);
             this.pointLight!.positionWorld.addVec2(lightMove);
         }
     }
 
     private setupMouseEvents() {
-        InputController.setMouseDownCallback((e) => this.onMouseDown(e));
-        InputController.setMouseMoveCallback((e) => this.onMouseMove(e));
-        InputController.setMouseUpCallback(() => this.onMouseUp());
+        InputController.addMouseDownCallback(this.mouseDownHandler);
+        InputController.addMouseMoveCallback(this.mouseMoveHandler);
+        InputController.addMouseUpCallback(this.mouseUpHandler);
     }
 
     private onMouseDown(e: MouseEvent) {
-        const mousePos = InputController?.getMousePosition(); // Now returns Vec2
+        const mousePos = InputController.getMousePosition();
         if (!mousePos) return;
 
-        // Check if the mouse is over the light (or near it)
         if (this.isMouseOverLight(mousePos)) {
-
             this.isDragging = true;
-            this.dragStartPosition = new Vec2(this.positionWorld?.x, this.positionWorld?.y) ?? new Vec2(0, 0);
+            this.dragStartPosition = new Vec2(this.positionWorld.x, this.positionWorld.y);
             this.lastMousePosition = mousePos;
         }
     }
 
     private onMouseMove(e: MouseEvent) {
-        const mousePos = InputController?.getMousePosition();
+        const mousePos = InputController.getMousePosition();
         if (!this.isDragging || !mousePos) return;
 
         this.lastMousePosition = mousePos;
@@ -104,11 +103,8 @@ export class MoveableLight extends ActiveEntity {
     }
 
     private isMouseOverLight(mousePos: Vec2): boolean {
-        // You can define a radius or threshold to check if the mouse is near the light
-        const lightPosition = new Vec2(this.positionWorld!.x, this.positionWorld!.y);
-        const distance = mousePos.clone().sub(lightPosition);
-        const distanceThreshold = 50; // Adjust this threshold for how close the mouse needs to be to interact with the light
-        console.log(mousePos)
-        return distance.length() <= distanceThreshold;
+        const lightPos = new Vec2(this.positionWorld.x, this.positionWorld.y);
+        const dist = mousePos.clone().sub(lightPos);
+        return dist.length() <= 50; // Threshold for dragging
     }
 }

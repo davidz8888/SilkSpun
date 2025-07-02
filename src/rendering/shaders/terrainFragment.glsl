@@ -3,7 +3,9 @@
 
 in vec3 v_positionWorld;
 in vec3 v_normalWorld; 
-in vec2 v_uv;               
+in vec2 v_uv;       
+
+uniform float heightScaling;
 
 uniform sampler2D albedoMap;
 uniform sampler2D normalMap;
@@ -21,7 +23,6 @@ layout(location = 4) out vec4 fragColor4; // shininess
 layout(location = 5) out vec4 fragColor5; // hydraulics
 layout(location = 6) out vec4 fragColor6; // emissions
 
-const float HEIGHT_SCALING = 8.0;
 
 float NORMALIZATION_FACTOR = 1.0;
 float EPSILON = 0.1; 
@@ -44,7 +45,8 @@ void main() {
     if (albedo.a <= 0.0) discard;
 
     vec4 normal = texture(normalMap, v_uv);
-    float height = texture(heightMap, v_uv).r;
+    vec3 heightInfo = texture(heightMap, v_uv).rgb;
+    float height = max(max(heightInfo.r, heightInfo.g), heightInfo.b);
     vec4 specular = texture(specularMap, v_uv);
     vec4 shininess = texture(shininessMap, v_uv);
     vec4 hydraulics = texture(hydraulicsMap, v_uv);
@@ -55,7 +57,7 @@ void main() {
 
     fragColor0 = albedo;
     fragColor1 = normal;
-    fragColor2 = vec4(v_positionWorld.z + (height * HEIGHT_SCALING), 0.0, 0.0, 1.0);
+    fragColor2 = vec4(v_positionWorld.z + (height * heightScaling), 0.0, 0.0, 1.0);
     fragColor3 = specular;
     fragColor4 = shininess;
     fragColor5 = hydraulics;
