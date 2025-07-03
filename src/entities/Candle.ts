@@ -7,9 +7,9 @@ import { RenderingPipeline } from '../rendering/RenderingPipeline';
 
 export class Candle extends PassiveEntity {
     private pointLight: PointLight | null = null;
-    private color: Vec3 = new Vec3(1.0, 0.2, 0.0);
+    private color: Vec3 = new Vec3(0.5, 0.1, 0.0);
     private falloff: number = 0.1;
-    private radius: number = 100;
+    private radius: number = 200;
 
     // Keep references for deregistration if needed
 
@@ -30,7 +30,7 @@ export class Candle extends PassiveEntity {
     private createPointLight(color: Vec3, falloff: number, radius: number) {
         const lightPosition: Vec3 = this.positionWorld.clone();
         lightPosition.y += 16;
-        lightPosition.z += 10;
+        lightPosition.z += 15;
         this.pointLight = {
             positionWorld: lightPosition,
             color: color,

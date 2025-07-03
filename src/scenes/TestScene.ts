@@ -12,9 +12,9 @@ export class TestScene extends Scene {
 
         super()
 
-        const moveableLight = new MoveableLight('candle');
-        const lightLayer = new Layer('light_layer', -61);
-        lightLayer.addEntity(moveableLight, 0, 0);
+        const moveableLight = new MoveableLight('moveable_light');
+        const lightLayer = new Layer('light_layer', -165);
+        lightLayer.addEntity(moveableLight, -40, -20);
 
         this.addLayer(lightLayer);
 
@@ -26,13 +26,13 @@ export class TestScene extends Scene {
 
 
         const lotus = new PassiveEntity('lotus', 5.0);
-        const lotusLayer = new Layer('lotus_layer', -190);
+        const lotusLayer = new Layer('lotus_layer', -180);
         lotusLayer.addEntity(lotus, -40, -34);
 
         this.addLayer(lotusLayer);
 
         const buddha = new PassiveEntity('buddha', 5.0);
-        const buddhaLayer = new Layer('buddha_layer', -195);
+        const buddhaLayer = new Layer('buddha_layer', -185);
         buddhaLayer.addEntity(buddha, -40, -4);
 
         this.addLayer(buddhaLayer);
@@ -50,7 +50,7 @@ export class TestScene extends Scene {
         this.addLayer(wallLayer);
 
         const floor = new PassiveEntity('temple_floor');
-        const floorLayer = new Layer('floor_layer', -60);
+        const floorLayer = new Layer('floor_layer', -55);
         floorLayer.addEntity(floor, 0, -80);
         this.addLayer(floorLayer);
 
@@ -66,11 +66,29 @@ export class TestScene extends Scene {
 
         this.addLayer(backgroundLayer);
 
-        const candleA = new Candle();
-        const candleLayer = new Layer('candle_layer', -61);
-        candleLayer.addEntity(candleA, 0, -100);
 
-        this.addLayer(candleLayer);
+        const candleLayerBack = new Layer('candle_layer_back', -61);
+
+        const candleA = new Candle();
+        candleLayerBack.addEntity(candleA, 0, -70);
+
+        const candleB = new Candle();
+        candleLayerBack.addEntity(candleB, 5, -74);
+
+        const candleC = new Candle();
+        candleLayerBack.addEntity(candleC, -6, -75);
+
+        const candleD = new Candle();
+        candleLayerBack.addEntity(candleD, -80, -70);
+
+        const candleE = new Candle();
+        candleLayerBack.addEntity(candleE, -75, -74);
+
+        const candleF = new Candle();
+        candleLayerBack.addEntity(candleF, -86, -75);
+
+
+        this.addLayer(candleLayerBack);
     }
 
 }

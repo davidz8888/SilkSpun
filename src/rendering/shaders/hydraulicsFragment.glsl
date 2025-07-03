@@ -88,6 +88,10 @@ void main() {
         hydraulics.b = 0.0;
     }
 
+    if (hydraulics.b > 0.0) {
+        hydraulics.b == 1.0;
+    }
+
     fragColor0 = hydraulics;
     fragColor1 = emissions * EMISSIONS_SCALING;
 }
