@@ -23,7 +23,7 @@ export class MoveableLight extends ActiveEntity {
     }
 
     override initMesh(pipeline: RenderingPipeline) {
-        this.createPointLight(new Vec3(1.0, 0.5, 0.2), 0.2, 50);
+        this.createPointLight(new Vec3(1.0, 0.5, 0.2), 0.5, 100);
         return super.initMesh(pipeline);
     }
 
