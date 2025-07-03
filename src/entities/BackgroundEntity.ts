@@ -6,7 +6,7 @@ import defualtVertexShader from '../rendering/shaders/defaultVertex.glsl';
 import backgroundFragmentShader from '../rendering/shaders/backgroundFragment.glsl';
 import { RenderingPipeline } from '../rendering/RenderingPipeline';
 
-export abstract class BackgroundEntity extends Entity {
+export class BackgroundEntity extends Entity {
 
     private mesh: THREE.Mesh | null = null;
 

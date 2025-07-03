@@ -57,7 +57,7 @@ void main() {
 
     fragColor0 = albedo;
     fragColor1 = normal;
-    fragColor2 = vec4(v_positionWorld.z + (height * heightScaling), 0.0, 0.0, 1.0);
+    fragColor2 = vec4(v_positionWorld.z + (height * heightScaling), 0.0, 1.0, 1.0);
     fragColor3 = specular;
     fragColor4 = shininess;
     fragColor5 = hydraulics;

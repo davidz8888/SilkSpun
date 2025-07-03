@@ -45,6 +45,7 @@ export class RenderingPipeline {
     private divergenceMaterial: THREE.ShaderMaterial;
     private pressureMaterial: THREE.ShaderMaterial;
     private projectionMaterial: THREE.ShaderMaterial;
+    private compositeMaterial: THREE.ShaderMaterial;
 
     private backgroundTarget: THREE.WebGLRenderTarget;
     private gBuffer: THREE.WebGLRenderTarget;
@@ -95,7 +96,7 @@ export class RenderingPipeline {
             this.sceneHeight / 2,
             -this.sceneHeight / 2,
             0,
-            100
+            1000
         );
 
         this.backgroundTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
@@ -108,6 +109,12 @@ export class RenderingPipeline {
         this.pressureTargetA = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.pressureTargetB = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.projectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
+        this.renderer.setRenderTarget(this.projectionTarget);
+        this.renderer.setClearAlpha(0.0);
+        this.renderer.clear();
+        const clearColor = new THREE.Color();
+        const alpha = this.renderer.getClearAlpha();
+        console.log(alpha);
         this.compositeTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
 
         this.backgroundScene = new THREE.Scene();
@@ -259,6 +266,7 @@ export class RenderingPipeline {
         const compositeUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
+            heightMap: { value: this.gBuffer.textures[2] },
             backgroundMap: { value: this.backgroundTarget.texture },
             foregroundMap: { value: this.lightingTarget.texture },
             hydraulicsMap: { value: this.hydraulicsTarget.textures[0] },
@@ -269,17 +277,21 @@ export class RenderingPipeline {
             matterMap: { value: this.projectionTarget.textures[1] },
             divergenceMap: { value: this.divergenceTarget.texture },
             pressureMapA: { value: this.pressureTargetA.texture },
-            pressureMapB: { value: this.pressureTargetB.texture }
+            pressureMapB: { value: this.pressureTargetB.texture },
+            pointLights: { value: this.pointLightsTHREE },
+            numPointLightsInUse: { value: this.pointLights.length },
+            infiniteLights: { value: this.infiniteLightsTHREE },
+            numInfiniteLightsInUse: { value: this.infiniteLights.length }
         };
 
-        const compositeMaterial: THREE.ShaderMaterial = new THREE.ShaderMaterial({
+        this.compositeMaterial = new THREE.ShaderMaterial({
             uniforms: compositeUniforms,
             glslVersion: THREE.GLSL3,
             vertexShader: defaultVertexShader,
             fragmentShader: compositeFragmentShader,
         });
 
-        const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), compositeMaterial);
+        const compositeQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.compositeMaterial);
         this.compositeScene.add(compositeQuad);
 
         const screenMaterial: THREE.MeshBasicMaterial = new THREE.MeshBasicMaterial({
@@ -304,6 +316,7 @@ export class RenderingPipeline {
 
         // Terrain Pass
         this.renderer.setRenderTarget(this.gBuffer);
+        this.renderer.clearDepth();
         this.renderer.render(this.terrainScene, this.camera);
 
         // Lighting Pass
@@ -410,7 +423,12 @@ export class RenderingPipeline {
         //     this.renderer.render(this.projectionScene, this.camera);
         // }
 
+        this.compositeMaterial.uniforms.pointLights.value = this.pointLightsTHREE;
+        this.compositeMaterial.uniforms.numPointLightsInUse.value = this.pointLights.length;
 
+        this.compositeMaterial.uniforms.infiniteLights.value = this.infiniteLightsTHREE;
+        this.compositeMaterial.uniforms.numInfiniteLightsInUse.value = this.infiniteLights.length
+       
         // Composite Pass
         this.renderer.setRenderTarget(this.compositeTarget);
         this.renderer.render(this.compositeScene, this.camera);

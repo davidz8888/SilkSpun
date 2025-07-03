@@ -19,10 +19,10 @@ uniform float dragCoefficient;
 layout(location = 0) out vec4 fragColor0;
 layout(location = 1) out vec4 fragColor1;
 
-float FLUID_Z = -10.0;
+float FLUID_Z = -60.0;
 
 float ACCELERATION_SCALING = 30.0;
-float EMISSIONS_SCALING = 0.1;
+float EMISSIONS_SCALING = 0.01;
 
 float EPSILON = 0.1; 
 
@@ -49,12 +49,11 @@ vec2 toUV(vec2 worldPos) {
 float getZ(vec2 uv) {
     vec4 fragZInfo = texture(heightMap, uv);
 
-    // if (fragZInfo.a <= 0.0) {
-    //     return -100.0;
-    // } else {
-    //     return fragZInfo.r;
-    // }
-    return fragZInfo.r;
+    if (fragZInfo.b <= 0.0) {
+        return -10000.0;
+    } else {
+        return fragZInfo.r;
+    }
 }
 
 void main() {

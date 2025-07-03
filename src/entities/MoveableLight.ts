@@ -23,7 +23,7 @@ export class MoveableLight extends ActiveEntity {
     }
 
     override initMesh(pipeline: RenderingPipeline) {
-        this.createPointLight(new Vec3(1.0, 1.0, 0.5), 0.0, 200);
+        this.createPointLight(new Vec3(1.0, 0.2, 0.0), 0.1, 200);
         return super.initMesh(pipeline);
     }
 
@@ -33,8 +33,11 @@ export class MoveableLight extends ActiveEntity {
     }
 
     private createPointLight(color: Vec3, falloff: number, radius: number) {
+        const lightPosition: Vec3 = this.positionWorld.clone();
+        lightPosition.y += 16;
+        lightPosition.z += 10;
         this.pointLight = {
-            positionWorld: this.positionWorld!,
+            positionWorld: lightPosition,
             color: color,
             falloff: falloff,
             radius: radius,
@@ -44,7 +47,10 @@ export class MoveableLight extends ActiveEntity {
 
     private setPointLightPosition(positionWorld: Vec3) {
         if (this.pointLight) {
-            this.pointLight.positionWorld = positionWorld;
+            const lightPosition: Vec3 = this.positionWorld.clone();
+            lightPosition.x += 1;
+            lightPosition.y += 10;
+            this.pointLight.positionWorld = lightPosition;
         }
     }
 

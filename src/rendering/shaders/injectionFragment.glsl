@@ -16,8 +16,8 @@ layout(location = 0) out vec4 fragColor0;
 layout(location = 1) out vec4 fragColor1;
 layout(location = 2) out vec4 fragColor2;
 
-float MATTER_DECAY = 0.001;
-float VISCOSITY = 0.001;
+float MATTER_DECAY = 0.01;
+float VISCOSITY = 0.0;
 
 float dT = 1.0 / 60.0;
 

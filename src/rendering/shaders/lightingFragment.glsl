@@ -16,6 +16,56 @@ uniform sampler2D shininessMap;
 
 out vec4 fragColor;
 
+// #define NUM_RAYS 47
+// const vec3 rayOffsets[NUM_RAYS] = vec3[NUM_RAYS](
+//     vec3( 0.000,  0.250,  0.000),
+//     vec3( 0.247,  0.243,  0.016),
+//     vec3(-0.042,  0.240,  0.246),
+//     vec3(-0.222,  0.232, -0.114),
+//     vec3( 0.239,  0.222, -0.073),
+//     vec3( 0.115,  0.211,  0.209),
+//     vec3(-0.229,  0.198,  0.142),
+//     vec3(-0.190,  0.184, -0.200),
+//     vec3( 0.169,  0.170, -0.217),
+//     vec3( 0.205,  0.155,  0.177),
+//     vec3(-0.146,  0.139,  0.227),
+//     vec3(-0.238,  0.122, -0.091),
+//     vec3( 0.233,  0.105, -0.133),
+//     vec3( 0.072,  0.088,  0.241),
+//     vec3(-0.218,  0.070,  0.170),
+//     vec3(-0.177,  0.052, -0.218),
+//     vec3( 0.146,  0.034, -0.235),
+//     vec3( 0.206,  0.015,  0.170),
+//     vec3(-0.106, -0.004,  0.246),
+//     vec3(-0.239, -0.024, -0.027),
+//     vec3( 0.214, -0.043, -0.179),
+//     vec3( 0.095, -0.062,  0.238),
+//     vec3(-0.164, -0.081,  0.217),
+//     vec3(-0.205, -0.099, -0.152),
+//     vec3( 0.112, -0.117, -0.231),
+//     vec3( 0.215, -0.135,  0.114),
+//     vec3(-0.057, -0.152,  0.240),
+//     vec3(-0.233, -0.168,  0.016),
+//     vec3( 0.195, -0.185, -0.128),
+//     vec3( 0.058, -0.201,  0.223),
+//     vec3(-0.149, -0.216,  0.180),
+//     vec3(-0.195, -0.231, -0.081),
+//     vec3( 0.092, -0.245, -0.184),
+//     vec3( 0.188, -0.258,  0.034),
+//     vec3(-0.028, -0.271,  0.192),
+//     vec3(-0.170, -0.283,  0.093),
+//     vec3( 0.068, -0.295, -0.117),
+//     vec3( 0.131, -0.306,  0.115),
+//     vec3(-0.045, -0.317,  0.095),
+//     vec3(-0.109, -0.327, -0.029),
+//     vec3( 0.057, -0.336, -0.064),
+//     vec3( 0.066, -0.345,  0.038),
+//     vec3(-0.031, -0.353,  0.051),
+//     vec3(-0.034, -0.361, -0.005),
+//     vec3( 0.016, -0.368, -0.014),
+//     vec3( 0.005, -0.375,  0.008),
+//     vec3( 0.000, -0.381,  0.000)
+// );
 
 // #define NUM_RAYS 9
 // const vec3 rayOffsets[NUM_RAYS] = vec3[NUM_RAYS](
@@ -29,6 +79,33 @@ out vec4 fragColor;
 //     vec3(-0.25, 0.25, -0.25),
 //     vec3(-0.25, -0.25, -0.25)
 // );
+
+// #define NUM_RAYS 5
+// const vec3 rayOffsets[NUM_RAYS] = vec3[NUM_RAYS](
+//     vec3(0.0, -0.5, 0.0),
+//     vec3(0.0, -0.25, 0.0),
+//     vec3(0.0, 0.0, 0.0),
+//     vec3(0.0, 0.25, 0.0),
+//     vec3(0.0, 0.5, 0.0)
+// );
+
+// #define NUM_RAYS 5
+// const vec3 rayOffsets[NUM_RAYS] = vec3[NUM_RAYS](
+//     vec3(-0.5, 0.0, 0.0),
+//     vec3(-0.25, 0.0, 0.0),
+//     vec3(0.0, 0.0, 0.0),
+//     vec3(0.25, 0.0, 0.0),
+//     vec3(0.5, 0.0, 0.0)
+// );
+
+// #define NUM_RAYS 4
+// const vec3 rayOffsets[NUM_RAYS] = vec3[NUM_RAYS](
+//     vec3(-0.25, 0.0, 0.0),
+//     vec3(0.25, -0.0, 0.0),
+//     vec3(-0.0, -0.25, 0.0),
+//     vec3(0.0, 0.25, 0.0)
+// );
+
 #define NUM_RAYS 1
 const vec3 rayOffsets[NUM_RAYS] = vec3[NUM_RAYS](
     vec3(0.0, 0.0, 0.0)
@@ -58,6 +135,7 @@ struct SkyLight {
 uniform SkyLight skyLight;
 #define NUM_SKYLIGHTS 100
 uniform vec3 skyLightDirections[NUM_SKYLIGHTS];
+int numSkyLightInUse = 50;
 
 
 struct InfiniteLight {
@@ -93,8 +171,8 @@ vec2 toUV(vec3 worldPos) {
 float getZ(vec2 uv) {
     vec4 fragZInfo = texture(heightMap, uv);
 
-    if (fragZInfo.a <= 0.0) {
-        return -100.0;
+    if (fragZInfo.b <= 0.0) {
+        return -10000.0;
     } else {
         return fragZInfo.r;
     }
@@ -226,7 +304,7 @@ bool DDAOcclusionCheck(vec3 startPoint, vec3 endPoint) {
 vec3 simpleLighting() {
 
     vec3 totalLight = vec3(0.0);
-    float shadowSoftness = 1.5;
+    float shadowSoftness = 20.0;
 
     for (int i = 0; i < numSimpleLightsInUse; i++) {
         PointLight light = simpleLights[i];
@@ -261,7 +339,7 @@ vec3 simpleLighting() {
 vec3 pointLighting() {
 
     vec3 totalLight = vec3(0.0);
-    float shadowSoftness = 1.5;
+    float shadowSoftness = 50.0;
 
     for (int i = 0; i < numPointLightsInUse; i++) {
         PointLight light = pointLights[i];
@@ -298,7 +376,7 @@ vec3 skyLighting() {
 
     vec3 totalLight = vec3(0);
 
-    for (int i = 0; i < NUM_SKYLIGHTS; i++) {
+    for (int i = 0; i < numSkyLightInUse; i++) {
 
         vec3 fragPos = vec3(v_positionWorld.xy, getZ(v_uv));
         vec3 lightDir = normalize(skyLightDirections[i]);
@@ -312,7 +390,7 @@ vec3 skyLighting() {
         if (DDAOcclusionCheck(fragPos, lightPos)) continue;
 
         vec3 albedo = texture(albedoMap, v_uv).rgb;
-        totalLight += (albedo * skyLight.color * normalFactor) / float(NUM_SKYLIGHTS);
+        totalLight += (albedo * skyLight.color * normalFactor) / float(numSkyLightInUse);
     }
 
     return totalLight;
@@ -323,23 +401,26 @@ vec3 infiniteLighting() {
     vec3 totalLight = vec3(0);
 
     for (int i = 0; i < numInfiniteLightsInUse; i++) {
+        
+        InfiniteLight light = infiniteLights[i];
 
         vec3 fragPos = vec3(v_positionWorld.xy, getZ(v_uv));
-        vec3 lightDir = normalize(infiniteLights[i].direction);
+        vec3 lightDir = normalize(light.direction);
         
         vec3 normal = normalize(texture(normalMap, v_uv).rgb * 2.0 - 1.0);
         float normalFactor = max((dot(normal, lightDir)), 0.0);
         if (normalFactor == 0.0) continue;
 
-        vec3 lightPos = fragPos + (lightDir * skyLight.shadowDistance);
+        vec3 lightPos = fragPos + (lightDir * light.shadowDistance);
 
         // DDA Setup
         if (DDAOcclusionCheck(fragPos, lightPos)) continue;
 
 
-        vec3 color = phongColor(fragPos, lightDir, infiniteLights[i].color);
+        vec3 color = phongColor(fragPos, lightDir, light.color);
 
-        float rayWeight = 1.0 / float(NUM_RAYS);
+        // float rayWeight = 1.0 / float(NUM_RAYS);
+        float rayWeight = 1.0;
         totalLight += rayWeight * color;
     }
 

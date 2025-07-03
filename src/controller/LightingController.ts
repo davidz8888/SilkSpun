@@ -31,14 +31,14 @@ export class LightingController {
     private static pointLights: PointLight[] = [];
     private static infiniteLights: InfiniteLight[] = [];
     private static skyLight: SkyLight = {
-        color: new Vec3(0.2, 0.2, 0.4),
+        color: new Vec3(0.0, 0.01, 0.02),
         shadowDistance: 10.0
     };;
 
     private static sunLight: InfiniteLight = {
-        direction: new Vec3(0.5, 0.5, 0.2),
-        color: new Vec3(1.0, 0.0, 0.0),
-        shadowDistance: 30.0
+        direction: new Vec3(1.0, 1.0, 0.001),
+        color: new Vec3(0.02, 0.04, 0.09),
+        shadowDistance: 176.0
     }
 
     static {
