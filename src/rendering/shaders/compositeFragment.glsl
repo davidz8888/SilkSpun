@@ -230,7 +230,7 @@ void main() {
     // vec3 solidsColor = (foreground.a * foreground.rgb) + ((1.0 - foreground.a) * background.rgb);
 
 
-    vec3 litMatter = pointLightingFluid() * 2.0 + infiniteLightingFluid();
+    vec3 litMatter = pointLightingFluid() + infiniteLightingFluid();
     vec3 combinedColor = litMatter + ((1.0 - matter.a) * foreground.rgb);
     
     // fragColor = foreground;
