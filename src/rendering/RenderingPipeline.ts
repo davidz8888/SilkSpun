@@ -109,12 +109,6 @@ export class RenderingPipeline {
         this.pressureTargetA = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.pressureTargetB = this.createFloatMRT(sceneWidth, sceneHeight, 1);
         this.projectionTarget = this.createFloatMRT(sceneWidth, sceneHeight, 2);
-        this.renderer.setRenderTarget(this.projectionTarget);
-        this.renderer.setClearAlpha(0.0);
-        this.renderer.clear();
-        const clearColor = new THREE.Color();
-        const alpha = this.renderer.getClearAlpha();
-        console.log(alpha);
         this.compositeTarget = this.createFloatMRT(sceneWidth, sceneHeight, 1);
 
         this.backgroundScene = new THREE.Scene();
@@ -243,6 +237,7 @@ export class RenderingPipeline {
         const pressureQuad: THREE.Mesh = new THREE.Mesh(new THREE.PlaneGeometry(sceneWidth, sceneHeight), this.pressureMaterial);
         this.pressureScene.add(pressureQuad);
 
+
         const projectionUniforms = {
             screenWidth: { value: sceneWidth },
             screenHeight: { value: sceneHeight },
@@ -305,6 +300,21 @@ export class RenderingPipeline {
         this.screenScene.add(screenQuad);
     }
 
+    async displayPrompt() {
+
+
+        const promptTexture: THREE.Texture = await AssetLoader.loadTexture("./assets/textures/wasd_prompt.png");
+        this.projectionMaterial.uniforms.matterMap.value = promptTexture;
+
+        this.renderer.setRenderTarget(this.projectionTarget);
+        this.renderer.render(this.projectionScene, this.camera);
+
+        this.projectionMaterial.uniforms.matterMap.value = this.advectionTarget.textures[1];
+
+        console.log('PROMPT');
+        console.log('FFFFFFFFFFFUUUUUUUUUUUUCCCCCCCCKKKKKKKKKK');
+    }
+
 
     public render() {
 
@@ -339,26 +349,21 @@ export class RenderingPipeline {
         this.renderer.render(this.lightingScene, this.camera);
 
 
-
         this.renderer.setRenderTarget(this.hydraulicsTarget);
         this.renderer.clear();
         this.renderer.render(this.hydraulicsScene, this.camera);
 
 
-
         this.renderer.setRenderTarget(this.injectionTarget);
         this.renderer.render(this.injectionScene, this.camera);
-
 
         
         this.renderer.setRenderTarget(this.advectionTarget);
         this.renderer.render(this.advectionScene, this.camera);
 
 
-
         this.renderer.setRenderTarget(this.divergenceTarget);
         this.renderer.render(this.divergenceScene, this.camera);
-
 
 
         this.renderer.setRenderTarget(this.pressureTargetA);
@@ -368,11 +373,8 @@ export class RenderingPipeline {
         this.renderer.clear();
 
 
-
-
         this.renderer.setRenderTarget(this.pressureTargetA);
         this.renderer.render(this.pressureScene, this.camera);
-
 
 
         const NUM_ITERATIONS = 25;
@@ -396,7 +398,6 @@ export class RenderingPipeline {
 
         this.renderer.setRenderTarget(this.projectionTarget);
         this.renderer.render(this.projectionScene, this.camera);
-
 
 
         this.divergenceMaterial.uniforms.velocityMap.value = this.projectionTarget.textures[0];

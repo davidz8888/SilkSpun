@@ -25,6 +25,7 @@ async function main() {
 
     const renderingPipeline = new RenderingPipeline(sceneWidth, sceneHeight);
     console.log(gameWorld.getAllEntities());
+    await renderingPipeline.displayPrompt();
     await renderingPipeline.addEntities(gameWorld.getAllEntities());
 
     let lastTime = performance.now(); // 👈 Track previous timestamp

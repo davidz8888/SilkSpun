@@ -9,7 +9,7 @@ export class AssetLoader {
             const texture = await AssetLoader.loadTexture(url);
             return texture;
         } catch (error) {
-            // console.log(`❌ Failed to load texture: ${url}, falling back to default...`);
+            console.log(`❌ Failed to load texture: ${url}, falling back to default...`);
 
             // If loading the primary texture fails, load the default texture
             const defaultTextureUrl = `./assets/textures/all_zero.png`;
@@ -33,7 +33,7 @@ export class AssetLoader {
                 },
                 undefined,
                 (error: any) => {
-                    // console.error(`❌ Failed to load texture: ${url}`, error);
+                    console.error(`❌ Failed to load texture: ${url}`, error);
                     reject(error);
                 }
             );
